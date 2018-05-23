@@ -1,0 +1,15 @@
+# Point to the Mock PubSub implementation.
+bullet.pubsub.class.name: "com.yahoo.bullet.spark.MockPubSub"
+# This is the type of PubSub context to use
+bullet.pubsub.context.name: "QUERY_PROCESSING"
+
+bullet.spark.data.producer.class.name: "com.yahoo.bullet.spark.MockDataProducer"
+bullet.spark.loop.pubsub.overrides:
+  "name": "fake"
+
+bullet.spark.batch.duration.ms: 100
+bullet.spark.data.producer.parallelism: 1
+spark.default.parallelism": "1"
+spark.streaming.blockInterval": "1ms"
+spark.streaming.receiverRestartDelay": "1"
+bullet.spark.metrics.enabled: false
