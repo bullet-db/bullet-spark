@@ -4,16 +4,43 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.bullet</groupId>
     <artifactId>bullet-spark</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>bullet-spark</name>
+
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/bullet-db/bullet-spark.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-bullet-spark-repo</id>
+            <url>https://api.bintray.com/maven/yahoo/maven/bullet-spark;publish=1</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-yahoo-maven</id>
+            <name>bintray</name>
+            <url>http://yahoo.bintray.com/maven</url>
+        </repository>
+    </repositories>
+
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <scala.version>2.11.7</scala.version>
         <scalatest.version>2.2.6</scalatest.version>
         <scala.dep.version>2.11</scala.dep.version>
         <scoverage.plugin.version>1.3.0</scoverage.plugin.version>
         <spark.version>2.2.0</spark.version>
         <bullet.core.version>0.3.3</bullet.core.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
@@ -64,7 +91,7 @@
             <version>1.7.10</version>
         </dependency>
 
-        <!-- TEST -->
+        <!-- Test -->
         <dependency>
             <groupId>com.yahoo.bullet</groupId>
             <artifactId>bullet-core</artifactId>
