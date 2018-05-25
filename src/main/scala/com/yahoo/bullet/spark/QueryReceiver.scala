@@ -61,6 +61,7 @@ class QueryReceiver(val config: BulletSparkConfig)
         }
       }
     } catch {
+      case _: java.lang.InterruptedException => // Ignore
       case t: Throwable =>
         subscriber.close()
         restart("Error receiving data", t)
