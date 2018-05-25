@@ -64,8 +64,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
     val message = new PubSubMessage("42", json)
     CustomSubscriber.subscriber.open()
     CustomSubscriber.subscriber.addMessages(message)
-
-
+    
     ssc1.stop(stopSparkContext = true, stopGracefully = false)
     ResultPublisher.clearInstance()
     BulletSparkConfig.clearInstance()
