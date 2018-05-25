@@ -1,6 +1,8 @@
-language: java
+language: scala
 jdk:
 - oraclejdk8
+scala:
+- 2.11.7
 script:
 - mvn verify
 after_success:
