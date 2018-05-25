@@ -24,7 +24,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventually {
   // Override waiting time to 10s since it's a spark streaming with checkpoint.
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(20000, Millis)))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(10000, Millis)))
 
   behavior of "The bullet spark streaming job"
 
@@ -43,6 +43,9 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
     CustomSubscriber.subscriber.addMessages(message)
 
     eventually {
+      if (CustomPublisher.publisher.sent.length != 0) {
+        println("sent length:" + CustomPublisher.publisher.sent.length)
+      }
       CustomPublisher.publisher.sent.length should equal(1)
       ssc.stop(stopSparkContext = true, stopGracefully = false)
     }

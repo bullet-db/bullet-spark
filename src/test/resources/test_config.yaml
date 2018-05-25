@@ -7,7 +7,7 @@ bullet.spark.data.producer.class.name: "com.yahoo.bullet.spark.MockDataProducer"
 bullet.spark.loop.pubsub.overrides:
   "name": "fake"
 
-bullet.spark.batch.duration.ms: 100
+bullet.spark.batch.duration.ms: 10
 bullet.spark.data.producer.parallelism: 1
 spark.default.parallelism": "1"
 spark.streaming.blockInterval": "1ms"
