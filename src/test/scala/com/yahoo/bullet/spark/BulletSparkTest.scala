@@ -36,7 +36,7 @@ trait BulletSparkTest extends FlatSpec with Matchers with BeforeAndAfter with Ev
 
   before {
     val sparkConf = new SparkConf()
-      .setMaster("local[*]")
+      .setMaster("local[4]")
       .setAppName("BulletSparkTest")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.closure.serializer", "org.apache.spark.serializer.KryoSerializer")

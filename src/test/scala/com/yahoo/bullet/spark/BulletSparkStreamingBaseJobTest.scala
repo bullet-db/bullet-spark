@@ -29,7 +29,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
   behavior of "The bullet spark streaming job"
 
   it should "run end to end successfully" in {
-    System.getProperties.setProperty("spark.master", "local[*]")
+    System.getProperties.setProperty("spark.master", "local[4]")
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     val job = new BulletSparkStreamingBaseJob()
     val ssc = job.getOrCreateContext(config)
@@ -49,7 +49,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
   }
 
   it should "run end to end successfully when recovering from checkpoint is enabled" in {
-    System.getProperties.setProperty("spark.master", "local[*]")
+    System.getProperties.setProperty("spark.master", "local[4]")
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     val job = new BulletSparkStreamingBaseJob()
 
