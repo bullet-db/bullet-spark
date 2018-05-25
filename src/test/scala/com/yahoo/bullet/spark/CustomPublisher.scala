@@ -29,6 +29,7 @@ class CustomPublisher extends Publisher {
       throw new PubSubException("")
     }
     sent += message
+    println("Message sent")
   }
 
   override def close(): Unit = {
