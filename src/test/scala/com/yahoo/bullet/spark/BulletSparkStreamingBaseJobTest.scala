@@ -17,6 +17,7 @@ import com.yahoo.bullet.parsing.QueryUtils.makeSimpleAggregationFilterQuery
 import com.yahoo.bullet.pubsub.PubSubMessage
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
 import org.apache.commons.io.FileUtils
+import org.apache.spark.streaming.StreamingContext
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Span}
 import org.scalatest.{FlatSpec, Matchers}
@@ -25,6 +26,11 @@ import org.scalatest.{FlatSpec, Matchers}
 class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventually {
   // Override waiting time to 10s since it's a spark streaming with checkpoint.
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(10000, Millis)))
+
+  private def stopSparkStreamingContext(ssc: StreamingContext) : Unit = {
+    ssc.sparkContext.stop()
+    ssc.stop(false)
+  }
 
   behavior of "The bullet spark streaming job"
 
@@ -43,12 +49,8 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
     CustomSubscriber.subscriber.addMessages(message)
 
     eventually {
-      if (CustomPublisher.publisher.sent.length != 0) {
-        println("sent length:" + CustomPublisher.publisher.sent.length)
-      }
       CustomPublisher.publisher.sent.length should equal(1)
-      ssc.sparkContext.stop()
-      ssc.stop(false)
+      stopSparkStreamingContext(ssc)
     }
   }
 
@@ -69,7 +71,8 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
     CustomSubscriber.subscriber.open()
     CustomSubscriber.subscriber.addMessages(message)
 
-    ssc1.stop(stopSparkContext = true, stopGracefully = false)
+
+    stopSparkStreamingContext(ssc1)
     ResultPublisher.clearInstance()
     BulletSparkConfig.clearInstance()
 
@@ -78,8 +81,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
 
     eventually {
       CustomPublisher.publisher.sent.length should equal(1)
-      ssc2.sparkContext.stop()
-      ssc2.stop(false)
+      stopSparkStreamingContext(ssc2)
     }
   }
 }

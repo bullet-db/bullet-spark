@@ -23,7 +23,6 @@ class CustomSubscriber extends Subscriber {
 
   def addMessages(pubSubMessages: PubSubMessage*): Unit = {
     for (pubSubMessage <- pubSubMessages) {
-      println("Message added to queue")
       queue += pubSubMessage
     }
   }
@@ -42,7 +41,6 @@ class CustomSubscriber extends Subscriber {
     } else {
       val message = queue.dequeue()
       received += message
-      println("Message received")
       message
     }
   }

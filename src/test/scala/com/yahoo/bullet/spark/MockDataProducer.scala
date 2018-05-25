@@ -30,7 +30,6 @@ class MockDataReceiver(val config: BulletSparkConfig)
       record.setString("field", "fake_field")
       try {
         store(record)
-        println("Bullet Record generated")
         Thread.sleep(1000)
       } catch {
         case _: Exception =>
