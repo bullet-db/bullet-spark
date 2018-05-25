@@ -5,9 +5,12 @@
  */
 package com.yahoo.bullet.spark
 
+import java.io.File
+
 import com.yahoo.bullet.common.BulletConfig
 import com.yahoo.bullet.querying.RunningQuery
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
+import org.apache.commons.io.FileUtils
 import org.apache.spark.streaming.{Clock, Seconds, StreamingContext}
 import org.apache.spark.{FixedClock, SparkConf, SparkContext}
 import org.scalatest.concurrent.Eventually
@@ -22,6 +25,16 @@ class NeverExpiringRunningQuery(id: String, queryString: String, config: BulletC
 class ExpiredRunningQuery(id: String, queryString: String, config: BulletConfig)
   extends RunningQuery(id, queryString, config) {
   override def isTimedOut: Boolean = true
+}
+
+class CustomRunningQuery(id: String, queryString: String, config: BulletConfig, val expireAfter: Int)
+  extends RunningQuery(id, queryString, config) {
+  var i = 0
+
+  override def isTimedOut: Boolean = {
+    i += 1
+    i >= expireAfter
+  }
 }
 
 /**
@@ -50,6 +63,9 @@ trait BulletSparkTest extends FlatSpec with Matchers with BeforeAndAfter with Ev
     fixedClock = Clock.getFixedClock(ssc)
     ResultPublisher.clearInstance()
     BulletSparkConfig.clearInstance()
+
+    // Delete target/spark-test directory.
+    FileUtils.deleteDirectory(new File("target/spark-test"))
   }
 
   after {
