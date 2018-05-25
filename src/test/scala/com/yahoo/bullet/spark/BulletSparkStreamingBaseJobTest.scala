@@ -17,6 +17,7 @@ import com.yahoo.bullet.parsing.QueryUtils.makeSimpleAggregationFilterQuery
 import com.yahoo.bullet.pubsub.PubSubMessage
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
 import org.apache.commons.io.FileUtils
+import org.apache.spark.streaming.StreamingContext
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Span}
 import org.scalatest.{FlatSpec, Matchers}
@@ -29,7 +30,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
   behavior of "The bullet spark streaming job"
 
   it should "run end to end successfully" in {
-    System.getProperties.setProperty("spark.master", "local[*]")
+    System.getProperties.setProperty("spark.master", "local[4]")
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     val job = new BulletSparkStreamingBaseJob()
     val ssc = job.getOrCreateContext(config)
@@ -49,13 +50,12 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
   }
 
   it should "run end to end successfully when recovering from checkpoint is enabled" in {
-    System.getProperties.setProperty("spark.master", "local[*]")
+    System.getProperties.setProperty("spark.master", "local[4]")
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     val job = new BulletSparkStreamingBaseJob()
 
     // Delete target/spark-test directory.
     FileUtils.deleteDirectory(new File("target/spark-test"))
-    config.set("bullet.spark.checkpoint.dir", "target/spark-test")
     config.set("bullet.spark.recover.from.checkpoint.enable", true)
 
     val ssc1 = job.getOrCreateContext(config)
@@ -64,7 +64,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
     val message = new PubSubMessage("42", json)
     CustomSubscriber.subscriber.open()
     CustomSubscriber.subscriber.addMessages(message)
-
+    
     ssc1.stop(stopSparkContext = true, stopGracefully = false)
     ResultPublisher.clearInstance()
     BulletSparkConfig.clearInstance()
