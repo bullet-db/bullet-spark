@@ -27,11 +27,6 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
   // Override waiting time to 10s since it's a spark streaming with checkpoint.
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(10000, Millis)))
 
-  private def stopSparkStreamingContext(ssc: StreamingContext) : Unit = {
-    ssc.sparkContext.stop()
-    ssc.stop(false)
-  }
-
   behavior of "The bullet spark streaming job"
 
   it should "run end to end successfully" in {
@@ -50,7 +45,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
 
     eventually {
       CustomPublisher.publisher.sent.length should equal(1)
-      stopSparkStreamingContext(ssc)
+      ssc.stop(stopSparkContext = true, stopGracefully = false)
     }
   }
 
@@ -61,7 +56,6 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
 
     // Delete target/spark-test directory.
     FileUtils.deleteDirectory(new File("target/spark-test"))
-    config.set("bullet.spark.checkpoint.dir", "target/spark-test")
     config.set("bullet.spark.recover.from.checkpoint.enable", true)
 
     val ssc1 = job.getOrCreateContext(config)
@@ -72,7 +66,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
     CustomSubscriber.subscriber.addMessages(message)
 
 
-    stopSparkStreamingContext(ssc1)
+    ssc1.stop(stopSparkContext = true, stopGracefully = false)
     ResultPublisher.clearInstance()
     BulletSparkConfig.clearInstance()
 
@@ -81,7 +75,7 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
 
     eventually {
       CustomPublisher.publisher.sent.length should equal(1)
-      stopSparkStreamingContext(ssc2)
+      ssc2.stop(stopSparkContext = true, stopGracefully = false)
     }
   }
 }
