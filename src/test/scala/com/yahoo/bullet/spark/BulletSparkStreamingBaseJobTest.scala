@@ -17,17 +17,21 @@ import com.yahoo.bullet.parsing.QueryUtils.makeSimpleAggregationFilterQuery
 import com.yahoo.bullet.pubsub.PubSubMessage
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
 import org.apache.commons.io.FileUtils
-import org.apache.spark.streaming.StreamingContext
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Span}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 
-class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventually {
+class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with BeforeAndAfter with Eventually {
   // Override waiting time to 10s since it's a spark streaming with checkpoint.
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(10000, Millis)))
 
   behavior of "The bullet spark streaming job"
+
+  before {
+    // Delete target/spark-test directory.
+    FileUtils.deleteDirectory(new File("target/spark-test"))
+  }
 
   it should "run end to end successfully" in {
     System.getProperties.setProperty("spark.master", "local[4]")
@@ -54,8 +58,6 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Eventu
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     val job = new BulletSparkStreamingBaseJob()
 
-    // Delete target/spark-test directory.
-    FileUtils.deleteDirectory(new File("target/spark-test"))
     config.set("bullet.spark.recover.from.checkpoint.enable", true)
 
     val ssc1 = job.getOrCreateContext(config)

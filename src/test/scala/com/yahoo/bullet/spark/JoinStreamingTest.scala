@@ -21,7 +21,7 @@ import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
 import com.yahoo.bullet.querying.{Querier, RateLimitError, RunningQuery}
 import com.yahoo.bullet.result.RecordBox
 import com.yahoo.bullet.spark.data.{
-  BulletData, BulletErrorData, BulletResult, BulletResultType, BulletSignalData, FilterResultData
+  BulletData, BulletErrorData, BulletResult, BulletResultType, BulletSignalData, FilterResultData, RunningQueryData
 }
 import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkUtils}
 import org.apache.spark.rdd.RDD
@@ -320,6 +320,42 @@ class JoinStreamingTest extends BulletSparkTest {
 
     eventually {
       outputCollector.last.length should equal(0)
+    }
+  }
+
+  it should "output join results on receiving running query data" in {
+    val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
+    val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
+
+    val pubSubMessage = new PubSubMessage("id",
+      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 3))
+    val runningQuery = new CustomRunningQuery("id", pubSubMessage.getContent, config, 4)
+
+    val inputQueryStream = ssc.queueStream(inputQueries)
+
+    val broadcastedConfig = BulletSparkConfig.getInstance(ssc, config)
+    val outputStream = JoinStreaming.join(ssc, inputQueryStream, broadcastedConfig)
+
+    outputStream.foreachRDD(rdd => outputCollector += rdd.collect())
+
+    ssc.checkpoint("target/spark-test")
+
+    ssc.start()
+
+    val bulletQuery = BulletSparkUtils.createBulletQuerier(runningQuery, Querier.Mode.PARTITION, broadcastedConfig)
+    bulletQuery.consume(RecordBox.get.add("field", "b235gf23b").getRecord)
+    inputQueries += sc.makeRDD(Seq(("id", new FilterResultData(metadata, runningQuery, bulletQuery.getData))))
+    wait1second() // T = 1s
+
+    eventually {
+      outputCollector.last.length should equal(0)
+    }
+
+    inputQueries += sc.makeRDD(Seq(("id", new RunningQueryData(metadata, runningQuery))))
+    wait1second() // T = 2s
+
+    eventually {
+      outputCollector.last.length should equal(1)
     }
   }
 }
