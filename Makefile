@@ -12,6 +12,9 @@ test:
 jar:
 	    mvn clean package
 
+release:
+	    mvn -B release:prepare release:clean
+
 coverage:
 	    mvn clean scoverage:report
 
