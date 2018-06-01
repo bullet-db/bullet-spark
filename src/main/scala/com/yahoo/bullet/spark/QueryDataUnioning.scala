@@ -51,9 +51,9 @@ object QueryDataUnioning {
     // Generate query stream including valid queries.
     val config = broadcastedConfig.value
     val duration = config.get(BulletSparkConfig.BATCH_DURATION_MS).asInstanceOf[Int]
-    val checkpointDurationMultiplier = config.get(BulletSparkConfig.CHECKPOINT_DURATION_MULTIPLIER).asInstanceOf[Int]
+    val durationMultiplier = config.get(BulletSparkConfig.QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER).asInstanceOf[Int]
     queryPairStream.updateStateByKey(updateFunc)
-      .checkpoint(Durations.milliseconds(checkpointDurationMultiplier * duration))
+      .checkpoint(Durations.milliseconds(durationMultiplier * duration))
   }
 
   private def updateFunc(queryList: Seq[BulletData], state: Option[BulletData]): Option[BulletData] = {

@@ -36,9 +36,9 @@ object JoinStreaming {
     val metrics = BulletSparkMetrics.getInstance(ssc, broadcastedConfig)
     val config = broadcastedConfig.value
     val duration = config.get(BulletSparkConfig.BATCH_DURATION_MS).asInstanceOf[Int]
-    val checkpointDurationMultiplier = config.get(BulletSparkConfig.CHECKPOINT_DURATION_MULTIPLIER).asInstanceOf[Int]
+    val durationMultiplier = config.get(BulletSparkConfig.JOIN_CHECKPOINT_DURATION_MULTIPLIER).asInstanceOf[Int]
     partialResultsStream.mapWithState(StateSpec.function(makeMapFunc(metrics, broadcastedConfig) _))
-      .checkpoint(Durations.milliseconds(checkpointDurationMultiplier * duration))
+      .checkpoint(Durations.milliseconds(durationMultiplier * duration))
   }
 
   private def makeMapFunc(metrics: BulletSparkMetrics, broadcastedConfig: Broadcast[BulletSparkConfig])
