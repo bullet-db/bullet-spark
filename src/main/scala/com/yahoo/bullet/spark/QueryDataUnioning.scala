@@ -11,7 +11,7 @@ import com.yahoo.bullet.record.BulletRecord
 import com.yahoo.bullet.spark.data.{BulletData, BulletErrorData, BulletSignalData, RunningQueryData}
 import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkUtils}
 import org.apache.spark.broadcast.Broadcast
-import org.apache.spark.streaming.StreamingContext
+import org.apache.spark.streaming.{Durations, StreamingContext}
 import org.apache.spark.streaming.dstream.DStream
 
 object QueryDataUnioning {
@@ -49,7 +49,11 @@ object QueryDataUnioning {
     })
 
     // Generate query stream including valid queries.
+    val config = broadcastedConfig.value
+    val duration = config.get(BulletSparkConfig.BATCH_DURATION_MS).asInstanceOf[Int]
+    val checkpointDurationMultiplier = config.get(BulletSparkConfig.CHECKPOINT_DURATION_MULTIPLIER).asInstanceOf[Int]
     queryPairStream.updateStateByKey(updateFunc)
+      .checkpoint(Durations.milliseconds(checkpointDurationMultiplier * duration))
   }
 
   private def updateFunc(queryList: Seq[BulletData], state: Option[BulletData]): Option[BulletData] = {

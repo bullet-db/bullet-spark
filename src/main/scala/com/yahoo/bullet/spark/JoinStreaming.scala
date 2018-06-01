@@ -13,7 +13,7 @@ import com.yahoo.bullet.spark.data.{
 import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkUtils}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.streaming.dstream.DStream
-import org.apache.spark.streaming.{State, StateSpec, StreamingContext, Time}
+import org.apache.spark.streaming.{Durations, State, StateSpec, StreamingContext, Time}
 
 object JoinStreaming {
   /**
@@ -34,7 +34,11 @@ object JoinStreaming {
   def join(ssc: StreamingContext, partialResultsStream: DStream[(String, BulletData)],
            broadcastedConfig: Broadcast[BulletSparkConfig]): DStream[(String, BulletResult)] = {
     val metrics = BulletSparkMetrics.getInstance(ssc, broadcastedConfig)
+    val config = broadcastedConfig.value
+    val duration = config.get(BulletSparkConfig.BATCH_DURATION_MS).asInstanceOf[Int]
+    val checkpointDurationMultiplier = config.get(BulletSparkConfig.CHECKPOINT_DURATION_MULTIPLIER).asInstanceOf[Int]
     partialResultsStream.mapWithState(StateSpec.function(makeMapFunc(metrics, broadcastedConfig) _))
+      .checkpoint(Durations.milliseconds(checkpointDurationMultiplier * duration))
   }
 
   private def makeMapFunc(metrics: BulletSparkMetrics, broadcastedConfig: Broadcast[BulletSparkConfig])
