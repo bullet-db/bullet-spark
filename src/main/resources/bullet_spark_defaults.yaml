@@ -13,6 +13,8 @@ bullet.spark.metrics.enabled: false
 bullet.spark.filter.partition.parallel.mode.enabled: false
 bullet.spark.filter.partition.parallel.mode.parallelism: 4
 bullet.spark.filter.partition.parallel.mode.min.query.threshold: 10
+bullet.spark.query.union.checkpoint.duration.multiplier: 10
+bullet.spark.join.checkpoint.duration.multiplier: 10
 
 ########################################################################################################################
 ######################################### Spark Streaming defaults #####################################

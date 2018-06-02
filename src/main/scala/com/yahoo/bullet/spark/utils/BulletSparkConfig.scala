@@ -28,6 +28,8 @@ object BulletSparkConfig {
   val FILTER_PARTITION_MODE_PARALLELISM = "bullet.spark.filter.partition.parallel.mode.parallelism"
   val FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD =
     "bullet.spark.filter.partition.parallel.mode.min.query.threshold"
+  val QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER = "bullet.spark.query.union.checkpoint.duration.multiplier"
+  val JOIN_CHECKPOINT_DURATION_MULTIPLIER = "bullet.spark.join.checkpoint.duration.multiplier"
 
   val SPARK_STREAMING_CONFIG_PREFIX = "spark."
   val DEFAULT_CONFIGURATION = "bullet_spark_defaults.yaml"
@@ -58,6 +60,8 @@ object BulletSparkConfig {
   private val DEFAULT_FILTER_PARTITION_PARALLEL_MODE_ENABLED = false
   private val DEFAULT_FILTER_PARTITION_MODE_PARALLELISM = 4
   private val DEFAULT_FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD = 10
+  private val DEFAULT_QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER = 10
+  private val DEFAULT_JOIN_CHECKPOINT_DURATION_MULTIPLIER = 10
 
   private val VALIDATOR = BulletConfig.getValidator
   VALIDATOR.define(QUERY_BLOCK_SIZE)
@@ -100,6 +104,14 @@ object BulletSparkConfig {
     .castTo(asJavaFunction(Validator.asInt))
   VALIDATOR.define(FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD)
     .defaultTo(DEFAULT_FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD)
+    .checkIf(asJavaPredicate(Validator.isPositiveInt))
+    .castTo(asJavaFunction(Validator.asInt))
+  VALIDATOR.define(QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER)
+    .defaultTo(DEFAULT_QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER)
+    .checkIf(asJavaPredicate(Validator.isPositiveInt))
+    .castTo(asJavaFunction(Validator.asInt))
+  VALIDATOR.define(JOIN_CHECKPOINT_DURATION_MULTIPLIER)
+    .defaultTo(DEFAULT_JOIN_CHECKPOINT_DURATION_MULTIPLIER)
     .checkIf(asJavaPredicate(Validator.isPositiveInt))
     .castTo(asJavaFunction(Validator.asInt))
 
