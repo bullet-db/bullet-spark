@@ -1,24 +1,71 @@
 ########################################################################################################################
 ######################################### Bullet Spark defaults #####################################
 ########################################################################################################################
+# This is the name of the concrete implementation of DataProducer to use.
 bullet.spark.data.producer.class.name: "full.package.path.to.your.producer.class"
+
+# This is the batch interval of your spark streaming job. Find more about it at
+# https://spark.apache.org/docs/latest/streaming-programming-guide.html#setting-the-right-batch-interval.
 bullet.spark.batch.duration.ms: 1000
+
+# This is block size to accumulate queries in receiver before emitting to Spark.
 bullet.spark.receiver.query.block.size: 1
+
+# This is the max partition number for the streaming from query receiver.
 bullet.spark.receiver.query.coalesce.partitions: 10
+
+# This is the number of data producers.
 bullet.spark.data.producer.parallelism: 1
+
+# This is the checkpoint directory. If you are running your spark over cluster, the directory must be an HDFS path.
 bullet.spark.checkpoint.dir: "/tmp/spark-checkpoint"
+
+# If true, Bullet Spark recovers context from checkpoint files when starting.
+# Otherwise Bullet Spark creates a new context.
 bullet.spark.recover.from.checkpoint.enable: false
+
+# This is the your spark application name.
 bullet.spark.app.name: "BulletSparkStreamingJob"
+
+# If true, Bullet Spark collects metrics which can be accessed via Spark REST API (/metrics/json).
 bullet.spark.metrics.enabled: false
+
+# If true, running filtering job in parallel for each partition of Filter Streaming.
+# It speeds up those partitions which have large data and queries by partitioning queries to multiple threads
+# to do filtering job concurrently.
 bullet.spark.filter.partition.parallel.mode.enabled: false
+
+# This is the thread pool size for partition filtering.
+# It is only used when bullet.spark.filter.partition.parallel.mode.enabled is true.
 bullet.spark.filter.partition.parallel.mode.parallelism: 4
+
+# This is the minimum number of queries to enable partition filtering since it has costs to manage a thread pool.
+# It is only used when bullet.spark.filter.partition.parallel.mode.enabled is true.
 bullet.spark.filter.partition.parallel.mode.min.query.threshold: 10
+
+# The following 2 settings are used to set the checkpoint intervals for each stateful transformation.
+# checkpoint interval = Spark duration * checkpoint duration multiplier
 bullet.spark.query.union.checkpoint.duration.multiplier: 10
 bullet.spark.join.checkpoint.duration.multiplier: 10
+
+# The feedback publisher switches your PubSub into QUERY_SUBMISSION mode to loop back metadata messages to query
+# receiver. If you need to change settings for your publisher in this mode that is different from the settings
+# used in the result publisher, override them here. This setting needs to be a Map if provided.
+# The example below pretends that your PubSub settings start with bullet.pubsub.custom. You will provide yours.
+# Example:
+#
+# bullet.spark.loop.pubsub.overrides:
+#   bullet.pubsub.custom.publisher.setting: 1
+#   bullet.pubsub.custom.nested.publisher.setting:
+#     foo: bar
+#     bar: baz
+bullet.spark.loop.pubsub.overrides: {}
 
 ########################################################################################################################
 ######################################### Spark Streaming defaults #####################################
 ########################################################################################################################
+# The following settings are passing to Spark directly. You can add more settings here.
+# You can find more information about Spark configuration at https://spark.apache.org/docs/latest/configuration.html.
 spark.serializer: "org.apache.spark.serializer.KryoSerializer"
 spark.closure.serializer: "org.apache.spark.serializer.KryoSerializer"
 spark.kryo.registrator: "com.yahoo.bullet.spark.utils.BulletKryoRegistrator"
@@ -29,7 +76,10 @@ spark.streaming.driver.writeAheadLog.allowBatching: "false"
 ########################################################################################################################
 ######################################### Query PubSub defaults ########################################
 ########################################################################################################################
-# This is the type of PubSub context to use
+# This is the type of PubSub context to use for result publisher.
+# The feedback publisher uses QUERY_SUBMISSION since it submits messages.
 bullet.pubsub.context.name: "QUERY_PROCESSING"
 # This is the name of the concrete implementation of PubSub to use.
+# By default, it is the bulletin REST in-memory PubSub.
 bullet.pubsub.class.name: "com.yahoo.bullet.pubsub.rest.RESTPubSub"
+# Add settings specific to your PubSub.
