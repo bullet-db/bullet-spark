@@ -8,7 +8,7 @@ This project implements Bullet on [Spark Streaming](https://spark.apache.org/str
 
 ## Documentation
 
-All documentation has moved to **[Github Pages here](https://bullet.github.io/)**.
+All documentation has moved to **[Github Pages here](https://bullet-db.github.io/)**.
 
 ### Useful links
 
