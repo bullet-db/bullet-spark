@@ -9,7 +9,6 @@ package com.yahoo.bullet.spark.utils
 import scala.collection.JavaConverters._
 // scalastyle:on
 
-import com.google.gson.JsonParseException
 import com.yahoo.bullet.parsing.ParsingError
 import com.yahoo.bullet.pubsub.Metadata.Signal
 import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
@@ -45,8 +44,9 @@ object BulletSparkUtils {
         }
       }
     } catch {
-      case jpe: JsonParseException =>
-        new BulletErrorData(metadata, ParsingError.makeError(jpe, content))
+      case e: RuntimeException =>
+        // Includes JSONParseException.
+        new BulletErrorData(metadata, ParsingError.makeError(e, content))
     }
   }
 
