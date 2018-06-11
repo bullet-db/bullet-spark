@@ -14,5 +14,5 @@ spark.streaming.blockInterval": "1ms"
 spark.streaming.receiverRestartDelay": "1"
 bullet.spark.metrics.enabled: false
 bullet.spark.checkpoint.dir: "target/spark-test"
-bullet.spark.query.union.checkpoint.duration.multiplier: 1
-bullet.spark.join.checkpoint.duration.multiplier: 1
+bullet.spark.query.union.checkpoint.duration.multiplier: 10
+bullet.spark.join.checkpoint.duration.multiplier: 10

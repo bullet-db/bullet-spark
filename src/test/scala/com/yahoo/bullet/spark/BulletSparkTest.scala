@@ -45,7 +45,7 @@ trait BulletSparkTest extends FlatSpec with Matchers with BeforeAndAfter with Ev
   var ssc: StreamingContext = _
   var fixedClock: FixedClock = _
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(2000, Millis)))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(1500, Millis)))
 
   before {
     val sparkConf = new SparkConf()
