@@ -45,8 +45,9 @@ object BulletSparkUtils {
         }
       }
     } catch {
-      case jpe: JsonParseException =>
-        new BulletErrorData(metadata, ParsingError.makeError(jpe, content))
+      case e: RuntimeException =>
+        // Includes JSONParseException.
+        new BulletErrorData(metadata, ParsingError.makeError(e, content))
     }
   }
 
