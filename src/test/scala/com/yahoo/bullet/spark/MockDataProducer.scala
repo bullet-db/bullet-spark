@@ -26,7 +26,7 @@ class MockDataReceiver(val config: BulletSparkConfig)
 
   private def receive(): Unit = {
     while (!isStopped()) {
-      val record = new BulletRecord()
+      val record = config.getBulletRecordProvider.getInstance()
       record.setString("field", "fake_field")
       try {
         store(record)

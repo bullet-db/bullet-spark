@@ -74,7 +74,6 @@ bullet.spark.loop.pubsub.overrides: {}
 # command line.
 spark.serializer: "org.apache.spark.serializer.KryoSerializer"
 spark.closure.serializer: "org.apache.spark.serializer.KryoSerializer"
-spark.kryo.registrator: "com.yahoo.bullet.spark.utils.BulletKryoRegistrator"
 spark.streaming.stopGracefullyOnShutdown: "true"
 spark.streaming.receiver.writeAheadLog.enable: "false"
 spark.streaming.driver.writeAheadLog.allowBatching: "false"
@@ -97,3 +96,5 @@ bullet.pubsub.class.name: "com.yahoo.bullet.pubsub.rest.RESTPubSub"
 ## https://github.com/bullet-db/bullet-core/blob/master/src/main/resources/bullet_defaults.yaml
 ########################################################################################################################
 ########################################################################################################################
+# Factory class to get new BulletRecords.
+bullet.record.provider.class.name: "com.yahoo.bullet.record.SimpleBulletRecordProvider"
