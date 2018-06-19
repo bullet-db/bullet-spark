@@ -141,11 +141,4 @@ class BulletSparkConfig(other: Config)
   def this(file: String) {
     this(new Config(file))
   }
-
-  /**
-   * @constructor Default constructor.
-   */
-  def this() {
-    this(null.asInstanceOf[Config])
-  }
 }
