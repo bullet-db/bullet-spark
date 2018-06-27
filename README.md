@@ -13,6 +13,7 @@ All documentation has moved to **[Github Pages here](https://bullet-db.github.io
 ## Links
 
 * [Bullet Spark Architecture](https://bullet-db.github.io/backend/spark-architecture/) to learn about Bullet Spark architecture.
+* [Bullet Spark Releases](https://bullet-db.github.io/releases/#bullet-spark) to see Bullet Spark releases.
 
 ### Useful links
 
