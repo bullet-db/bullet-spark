@@ -1,4 +1,4 @@
-# Bullet
+# Bullet Spark
 
 [![Build Status](https://travis-ci.org/bullet-db/bullet-spark.svg?branch=master)](https://travis-ci.org/bullet-db/bullet-spark) [![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-spark/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-spark?branch=master) [![Download](https://api.bintray.com/packages/yahoo/maven/bullet-spark/images/download.svg) ](https://bintray.com/yahoo/maven/bullet-spark/_latestVersion)
 
