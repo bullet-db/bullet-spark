@@ -25,11 +25,15 @@ object BulletSparkStreamingMain {
 
   def main(args: Array[String]): Unit = {
     val options = PARSER.parse(args: _*)
-    val bulletSparkConfigPath = options.valueOf(CONFIGURATION_ARG).asInstanceOf[String]
-    val job = new BulletSparkStreamingBaseJob()
-    val config = new BulletSparkConfig(bulletSparkConfigPath)
-    val ssc = job.getOrCreateContext(config)
-    ssc.start()
-    ssc.awaitTermination()
+    if (options.has(HELP_ARG)) {
+      PARSER.printHelpOn(System.out)
+    } else {
+      val bulletSparkConfigPath = options.valueOf(CONFIGURATION_ARG).asInstanceOf[String]
+      val job = new BulletSparkStreamingBaseJob()
+      val config = new BulletSparkConfig(bulletSparkConfigPath)
+      val ssc = job.getOrCreateContext(config)
+      ssc.start()
+      ssc.awaitTermination()
+    }
   }
 }
