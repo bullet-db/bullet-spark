@@ -39,7 +39,7 @@ class QueryDataUnioningTest extends BulletSparkTest {
     val pubSubMessage2 = new PubSubMessage("id2", "This is a json parsing error pubsub message.")
     // Window initialization error.
     val pubSubMessage3 = new PubSubMessage("id3", makeAggregationQuery(
-      RAW, null, Window.Unit.RECORD, 10, Window.Unit.RECORD, 10))
+      RAW, null, Window.Unit.RECORD, 10, Window.Unit.RECORD, 9))
     inputQueries += sc.makeRDD(Seq(pubSubMessage1, pubSubMessage2, pubSubMessage3))
     wait1second() // T = 1s
 
