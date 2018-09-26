@@ -168,7 +168,7 @@ class JoinStreamingTest extends BulletSparkTest {
       outputCollector.last.length should equal(0)
     }
 
-    val error = new RateLimitError(0.0, config)
+    val error = new RateLimitError(0.0, 500)
     inputQueries += sc.makeRDD(Seq(("id", new BulletErrorData(metadata = metadata, errors = List(error)))))
 
     wait1second() // T = 2s
