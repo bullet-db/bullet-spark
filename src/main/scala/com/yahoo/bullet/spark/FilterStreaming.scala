@@ -8,10 +8,7 @@ package com.yahoo.bullet.spark
 import java.util.concurrent.{Callable, Executors, Future}
 
 import scala.collection.mutable.ArrayBuffer
-
-// scalastyle:off
-import scala.collection.JavaConverters._
-// scalastyle:on
+import scala.compat.java8.FunctionConverters.asJavaBiConsumer
 
 import com.yahoo.bullet.querying.{Querier, QueryManager}
 import com.yahoo.bullet.record.BulletRecord
@@ -120,37 +117,29 @@ object FilterStreaming {
                      outputs: ArrayBuffer[(String, BulletData)]): Unit = {
     val queryCategorizer = queryManager.categorize(record)
 
-    queryCategorizer.getDone.asScala.foreach(entry => {
-      val querier = entry._2
-      val key = entry._1
+    queryCategorizer.getDone.forEach(asJavaBiConsumer((key, querier) => {
       outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
       queryManager.removeAndGetQuery(key)
-    })
+    }))
 
-    queryCategorizer.getRateLimited.asScala.foreach(entry => {
-      val querier = entry._2
-      val key = entry._1
+    queryCategorizer.getRateLimited.forEach(asJavaBiConsumer((key, querier) => {
       outputs += ((key, new BulletErrorData(queryMap(key).metadata, querier.getRateLimitError)))
       queryManager.removeAndGetQuery(key)
-    })
+    }))
 
-    queryCategorizer.getClosed.asScala.foreach(entry => {
-      val querier = entry._2
-      val key = entry._1
+    queryCategorizer.getClosed.forEach(asJavaBiConsumer((key, querier) => {
       outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
       querier.reset()
-    })
+    }))
   }
 
   private def emitUnDoneQuries(queryMap: Map[String, RunningQueryData], queryManager: QueryManager,
                                outputs: ArrayBuffer[(String, BulletData)]): Unit = {
     val queries = queryManager.getQueries
-    queries.asScala.foreach(entry => {
-      val querier = entry._2
-      val key = entry._1
+    queries.forEach(asJavaBiConsumer((key, querier) => {
       if (querier.hasNewData) {
         outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
       }
-    })
+    }))
   }
 }
