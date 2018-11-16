@@ -5,11 +5,13 @@
  */
 package com.yahoo.bullet.spark
 
-import java.util.concurrent.{Callable, ExecutorService, Executors, Future}
+import java.util.concurrent.{Callable, Executors, Future}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.compat.java8.FunctionConverters.asJavaBiConsumer
 
-import com.yahoo.bullet.querying.Querier
+import com.yahoo.bullet.querying.{Querier, QueryManager}
 import com.yahoo.bullet.record.BulletRecord
 import com.yahoo.bullet.spark.data.{BulletData, BulletErrorData, FilterResultData, RunningQueryData}
 import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkUtils}
@@ -35,7 +37,7 @@ object FilterStreaming {
    */
   def filter(queryStream: DStream[(String, RunningQueryData)], bulletRecordStream: DStream[BulletRecord],
              broadcastedConfig: Broadcast[BulletSparkConfig]): DStream[(String, BulletData)] = {
-    queryStream.transformWith(bulletRecordStream, makeTransformFunc(broadcastedConfig) _)
+    queryStream.transformWith(bulletRecordStream, makeTransformFunc(broadcastedConfig) _).cache()
   }
 
   private def makeTransformFunc(broadcastedConfig: Broadcast[BulletSparkConfig])
@@ -52,76 +54,99 @@ object FilterStreaming {
       val outputRDD = bulletRecordRDD.mapPartitions(bulletRecordIterator => {
         val records = bulletRecordIterator.toList
         val config = broadcastedConfig.value
+        val queryList = broadcastedQueries.value
         val parallelEnabled = config.get(BulletSparkConfig.FILTER_PARTITION_PARALLEL_MODE_ENABLED).asInstanceOf[Boolean]
         val minQueryThreshold =
           config.get(BulletSparkConfig.FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD).asInstanceOf[Int]
-        val queryList = broadcastedQueries.value
-        if (parallelEnabled && queryList.length >= minQueryThreshold) {
-          val filterParallelism = config.get(BulletSparkConfig.FILTER_PARTITION_MODE_PARALLELISM).asInstanceOf[Int]
-          val threadPool = Executors.newFixedThreadPool(filterParallelism)
-          runInParallel(queryList, records, threadPool, broadcastedConfig).toIterator
+        val filterParallelism = config.get(BulletSparkConfig.FILTER_PARTITION_MODE_PARALLELISM).asInstanceOf[Int]
+        if (parallelEnabled && queryList.length >= minQueryThreshold && queryList.length >= filterParallelism) {
+          runInParallel(queryList, records, broadcastedConfig, filterParallelism)
         } else {
-          queryList.flatMap(
-            bulletDataTuple => onData(bulletDataTuple._1, bulletDataTuple._2, records, broadcastedConfig)
-          ).toIterator
+          process(queryList, records, broadcastedConfig)
         }
-      })
+      }.toIterator)
       broadcastedQueries.unpersist()
       outputRDD
     }
   }
 
   private def runInParallel(queries: Array[(String, RunningQueryData)], records: List[BulletRecord],
-                            threadPool: ExecutorService, broadcastedConfig: Broadcast[BulletSparkConfig]
+                            broadcastedConfig: Broadcast[BulletSparkConfig], filterParallelism: Int
                            ): Iterable[(String, BulletData)] = {
     val outputs = ArrayBuffer.empty[(String, BulletData)]
-    val size = queries.length
-    val futures = new Array[Future[Iterable[(String, BulletData)]]](size)
+    val threadPool = Executors.newFixedThreadPool(filterParallelism)
+    val totalSize = queries.length
+    val subSize = totalSize / filterParallelism
+    val futures = new Array[Future[Iterable[(String, BulletData)]]](filterParallelism)
+
+    var start = 0
     try {
-      for (i <- 0 until size) {
-        val bulletDataTuple = queries(i)
+      for (i <- 0 until filterParallelism) {
+        val end = if (i == filterParallelism - 1) totalSize else start + subSize
+        val subQueries = queries.slice(start, end)
+        start = end
         val callable = new Callable[Iterable[(String, BulletData)]]() {
           override def call(): Iterable[(String, BulletData)] = {
-            onData(bulletDataTuple._1, bulletDataTuple._2, records, broadcastedConfig)
+            process(subQueries, records, broadcastedConfig)
           }
         }
         futures(i) = threadPool.submit(callable)
-
       }
     } finally {
       threadPool.shutdown()
     }
+
     futures.foreach(outputs ++= _.get())
     outputs
   }
 
-  private def onData(key: String, runningQueryData: RunningQueryData, records: List[BulletRecord],
-                     broadCastedConfig: Broadcast[BulletSparkConfig]): Iterable[(String, BulletData)] = {
-    val outputs = ArrayBuffer.empty[(String, BulletData)]
-    var isDone = false
-    val querier = BulletSparkUtils.createBulletQuerier(runningQueryData, Querier.Mode.PARTITION, broadCastedConfig)
-    records.foreach(bulletRecord => {
-      if (!isDone) {
-        querier.consume(bulletRecord)
-        if (querier.isDone) {
-          outputs += ((key, new FilterResultData(runningQueryData, querier.getData)))
-          isDone = true
-        } else {
-          if (querier.isClosed) {
-            outputs += ((key, new FilterResultData(runningQueryData, querier.getData)))
-            querier.reset()
-          }
-          if (querier.isExceedingRateLimit) {
-            outputs += ((key, new BulletErrorData(runningQueryData.metadata, querier.getRateLimitError)))
-            isDone = true
-          }
-        }
-      }
-    })
-    // Emit it finally at the end of each batch. But only emit if not done (output already added above) and has data.
-    if (!isDone && querier.hasNewData) {
-      outputs += ((key, new FilterResultData(runningQueryData, querier.getData)))
+  private def process(queryList: Array[(String, RunningQueryData)], records: List[BulletRecord],
+                      broadcastedConfig: Broadcast[BulletSparkConfig]): Iterable[(String, BulletData)] = {
+    val queryManager = new QueryManager(broadcastedConfig.value)
+    queryList.foreach {
+      case (key, runningQueryData) =>
+        val querier = BulletSparkUtils.createBulletQuerier(runningQueryData, Querier.Mode.PARTITION, broadcastedConfig)
+        queryManager.addQuery(key, querier)
     }
+    val outputs = ArrayBuffer.empty[(String, BulletData)]
+    val queryMap = queryList.toMap
+    val hasDataQueries = mutable.Map.empty[String, Querier]
+    records.foreach(onData(queryMap, queryManager, _, outputs, hasDataQueries))
+    emitUnDoneQueries(queryMap, hasDataQueries, outputs)
     outputs
+  }
+
+  private def onData(queryMap: Map[String, RunningQueryData], queryManager: QueryManager, record: BulletRecord,
+                     outputs: ArrayBuffer[(String, BulletData)], hasDataQueries: mutable.Map[String, Querier]): Unit = {
+    val queryCategorizer = queryManager.categorize(record)
+
+    queryCategorizer.getDone.forEach(asJavaBiConsumer((key, querier) => {
+      outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
+      queryManager.removeAndGetQuery(key)
+      hasDataQueries.remove(key)
+    }))
+
+    queryCategorizer.getRateLimited.forEach(asJavaBiConsumer((key, querier) => {
+      outputs += ((key, new BulletErrorData(queryMap(key).metadata, querier.getRateLimitError)))
+      queryManager.removeAndGetQuery(key)
+      hasDataQueries.remove(key)
+    }))
+
+    queryCategorizer.getClosed.forEach(asJavaBiConsumer((key, querier) => {
+      outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
+      querier.reset()
+      hasDataQueries.remove(key)
+    }))
+
+    queryCategorizer.getHasData.forEach(asJavaBiConsumer((key, querier) => {
+      hasDataQueries += (key -> querier)
+    }))
+  }
+
+  private def emitUnDoneQueries(queryMap: Map[String, RunningQueryData], hasDataQueries: mutable.Map[String, Querier],
+                                outputs: ArrayBuffer[(String, BulletData)]): Unit = {
+    hasDataQueries.foreach {
+      case (key, querier) => outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
+    }
   }
 }

@@ -128,7 +128,7 @@ class FilterStreamingTest extends BulletSparkTest {
   it should "output filter results with parallel filtering is enabled" in {
     val configWithParallelEnabled = new BulletSparkConfig("src/test/resources/test_config.yaml")
     configWithParallelEnabled.set(BulletSparkConfig.FILTER_PARTITION_PARALLEL_MODE_ENABLED, true)
-    configWithParallelEnabled.set(BulletSparkConfig.FILTER_PARTITION_MODE_PARALLELISM, 1)
+    configWithParallelEnabled.set(BulletSparkConfig.FILTER_PARTITION_MODE_PARALLELISM, 2)
     configWithParallelEnabled.set(BulletSparkConfig.FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD, 1)
 
     val inputQueries: mutable.Queue[RDD[(String, RunningQueryData)]] = mutable.Queue()
@@ -148,8 +148,13 @@ class FilterStreamingTest extends BulletSparkTest {
     // Not expired.
     val pubSubMessage = new PubSubMessage("id",
       makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 4))
+    val pubSubMessage1 = new PubSubMessage("id1",
+      makeSimpleAggregationFilterQuery("field", List("b235gf23c").asJava, Operation.EQUALS, RAW, 4))
     val runningQuery = new NeverExpiringRunningQuery("id", pubSubMessage.getContent, configWithParallelEnabled)
-    inputQueries += sc.makeRDD(Seq(("id", new RunningQueryData(metadata = null, runningQuery = runningQuery))))
+    val runningQuery1 = new NeverExpiringRunningQuery("id1", pubSubMessage1.getContent, configWithParallelEnabled)
+    inputQueries += sc.makeRDD(Seq(
+      ("id", new RunningQueryData(metadata = null, runningQuery = runningQuery)),
+      ("id1", new RunningQueryData(metadata = null, runningQuery = runningQuery1))))
     inputBulletRecords += sc.makeRDD(Seq(
       RecordBox.get.add("field", "b235gf23b").getRecord,
       RecordBox.get.add("field", "b235gf23b").getRecord))
