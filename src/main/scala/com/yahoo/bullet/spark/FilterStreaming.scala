@@ -7,6 +7,7 @@ package com.yahoo.bullet.spark
 
 import java.util.concurrent.{Callable, Executors, Future}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.compat.java8.FunctionConverters.asJavaBiConsumer
 
@@ -59,11 +60,11 @@ object FilterStreaming {
           config.get(BulletSparkConfig.FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD).asInstanceOf[Int]
         val filterParallelism = config.get(BulletSparkConfig.FILTER_PARTITION_MODE_PARALLELISM).asInstanceOf[Int]
         if (parallelEnabled && queryList.length >= minQueryThreshold && queryList.length >= filterParallelism) {
-          runInParallel(queryList, records, broadcastedConfig, filterParallelism).toIterator
+          runInParallel(queryList, records, broadcastedConfig, filterParallelism)
         } else {
-          process(queryList, records, broadcastedConfig).toIterator
+          process(queryList, records, broadcastedConfig)
         }
-      })
+      }.toIterator)
       broadcastedQueries.unpersist()
       outputRDD
     }
@@ -102,44 +103,53 @@ object FilterStreaming {
   private def process(queryList: Array[(String, RunningQueryData)], records: List[BulletRecord],
                       broadcastedConfig: Broadcast[BulletSparkConfig]): Iterable[(String, BulletData)] = {
     val queryManager = new QueryManager(broadcastedConfig.value)
-    queryList.foreach(entry => {
-      val querier = BulletSparkUtils.createBulletQuerier(entry._2, Querier.Mode.PARTITION, broadcastedConfig)
-      queryManager.addQuery(entry._1, querier)
-    })
+    queryList.foreach {
+      case (key, runningQueryData) =>
+        val querier = BulletSparkUtils.createBulletQuerier(runningQueryData, Querier.Mode.PARTITION, broadcastedConfig)
+        queryManager.addQuery(key, querier)
+    }
     val outputs = ArrayBuffer.empty[(String, BulletData)]
     val queryMap = queryList.toMap
-    records.foreach(record => onData(queryMap, queryManager, record, outputs))
-    emitUnDoneQuries(queryMap, queryManager, outputs)
+    val hasDataQueries = mutable.Map.empty[String, Querier]
+    records.foreach(onData(queryMap, queryManager, _, outputs, hasDataQueries))
+    emitUnDoneQueries(queryMap, hasDataQueries, outputs)
     outputs
   }
 
   private def onData(queryMap: Map[String, RunningQueryData], queryManager: QueryManager, record: BulletRecord,
-                     outputs: ArrayBuffer[(String, BulletData)]): Unit = {
+                     outputs: ArrayBuffer[(String, BulletData)], hasDataQueries: mutable.Map[String, Querier]): Unit = {
     val queryCategorizer = queryManager.categorize(record)
 
     queryCategorizer.getDone.forEach(asJavaBiConsumer((key, querier) => {
       outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
       queryManager.removeAndGetQuery(key)
+      hasDataQueries.remove(key)
     }))
 
     queryCategorizer.getRateLimited.forEach(asJavaBiConsumer((key, querier) => {
       outputs += ((key, new BulletErrorData(queryMap(key).metadata, querier.getRateLimitError)))
       queryManager.removeAndGetQuery(key)
+      hasDataQueries.remove(key)
     }))
 
     queryCategorizer.getClosed.forEach(asJavaBiConsumer((key, querier) => {
       outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
       querier.reset()
+      hasDataQueries.remove(key)
+    }))
+
+    queryCategorizer.getHasData.forEach(asJavaBiConsumer((key, querier) => {
+      hasDataQueries += (key -> querier)
     }))
   }
 
-  private def emitUnDoneQuries(queryMap: Map[String, RunningQueryData], queryManager: QueryManager,
-                               outputs: ArrayBuffer[(String, BulletData)]): Unit = {
-    val queries = queryManager.getQueries
-    queries.forEach(asJavaBiConsumer((key, querier) => {
-      if (querier.hasNewData) {
-        outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
-      }
-    }))
+  private def emitUnDoneQueries(queryMap: Map[String, RunningQueryData], hasDataQueries: mutable.Map[String, Querier],
+                                outputs: ArrayBuffer[(String, BulletData)]): Unit = {
+    hasDataQueries.foreach {
+      case (key, querier) =>
+        if (querier.hasNewData) {
+          outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
+        }
+    }
   }
 }
