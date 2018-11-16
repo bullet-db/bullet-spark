@@ -146,10 +146,7 @@ object FilterStreaming {
   private def emitUnDoneQueries(queryMap: Map[String, RunningQueryData], hasDataQueries: mutable.Map[String, Querier],
                                 outputs: ArrayBuffer[(String, BulletData)]): Unit = {
     hasDataQueries.foreach {
-      case (key, querier) =>
-        if (querier.hasNewData) {
-          outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
-        }
+      case (key, querier) => outputs += ((key, new FilterResultData(queryMap(key), querier.getData)))
     }
   }
 }
