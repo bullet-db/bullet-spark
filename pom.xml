@@ -38,7 +38,7 @@
         <scala.dep.version>2.11</scala.dep.version>
         <scoverage.plugin.version>1.3.0</scoverage.plugin.version>
         <spark.version>2.3.0</spark.version>
-        <bullet.core.version>0.6.1</bullet.core.version>
+        <bullet.core.version>0.6.4</bullet.core.version>
     </properties>
 
     <dependencies>
