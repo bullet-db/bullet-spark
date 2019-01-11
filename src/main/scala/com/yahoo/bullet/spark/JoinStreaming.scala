@@ -122,7 +122,7 @@ object JoinStreaming {
     }
 
     // If the query is not finished and data is not empty, consume data and check if it should be emitted.
-    if (!querierState.finished && filterResultData.data.nonEmpty) {
+    if (!querierState.finished && filterResultData.data != null && filterResultData.data.nonEmpty) {
       querierState.querier.combine(filterResultData.data)
       emitResults(key, querierState, bulletResults, metrics)
     }
