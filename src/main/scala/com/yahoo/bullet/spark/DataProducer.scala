@@ -20,13 +20,18 @@ object DataProducer {
    */
   @throws(classOf[RuntimeException])
   def getProducer(config: BulletSparkConfig): DataProducer = {
-    try {
-      val dataGeneratorClassName = config.get(BulletSparkConfig.DATA_PRODUCER_CLASS_NAME).asInstanceOf[String]
-      val clazz = Class.forName(dataGeneratorClassName)
-      val constructor = clazz.getDeclaredConstructor()
-      constructor.newInstance().asInstanceOf[DataProducer]
-    } catch {
-      case e: Exception => throw new RuntimeException("Can not create BulletRecordProducer instance.", e)
+    val dslEnable = config.get(BulletSparkConfig.DSL_DATA_PRODUCER_ENABLE).asInstanceOf[Boolean]
+    if (dslEnable) {
+      new DSLDataProducer()
+    } else {
+      try {
+        val dataGeneratorClassName = config.get(BulletSparkConfig.DATA_PRODUCER_CLASS_NAME).asInstanceOf[String]
+        val clazz = Class.forName(dataGeneratorClassName)
+        val constructor = clazz.getDeclaredConstructor()
+        constructor.newInstance().asInstanceOf[DataProducer]
+      } catch {
+        case e: Exception => throw new RuntimeException("Can not create BulletRecordProducer instance.", e)
+      }
     }
   }
 }

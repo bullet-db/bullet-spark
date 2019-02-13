@@ -47,8 +47,7 @@ class BulletSparkStreamingBaseJob extends BulletSparkLogger {
     queryStream.cache()
 
     // Filter bullet record stream by query stream.
-    val runningQueryStream = queryStream.filter(_._2.isInstanceOf[RunningQueryData])
-      .map(tuple => (tuple._1, tuple._2.asInstanceOf[RunningQueryData]))
+    val runningQueryStream = queryStream.filter(_._2.isInstanceOf[RunningQueryData]).map(tuple => (tuple._1, tuple._2.asInstanceOf[RunningQueryData]))
     val filteredQueriesStreams = FilterStreaming.filter(runningQueryStream, bulletRecordStream, broadcastedConfig)
 
     // Join the filter query stream.
