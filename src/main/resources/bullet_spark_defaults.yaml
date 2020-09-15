@@ -97,4 +97,4 @@ bullet.pubsub.class.name: "com.yahoo.bullet.pubsub.rest.RESTPubSub"
 ########################################################################################################################
 ########################################################################################################################
 # Factory class to get new BulletRecords.
-bullet.record.provider.class.name: "com.yahoo.bullet.record.SimpleBulletRecordProvider"
+bullet.record.provider.class.name: "com.yahoo.bullet.record.simple.TypedSimpleBulletRecordProvider"

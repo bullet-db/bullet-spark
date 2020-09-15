@@ -6,10 +6,12 @@
 package com.yahoo.bullet.spark.utils
 
 // scalastyle:off
+import com.yahoo.bullet.common.{BulletError, SerializerDeserializer}
+import com.yahoo.bullet.query.Query
+
 import scala.collection.JavaConverters._
 // scalastyle:on
 
-import com.yahoo.bullet.parsing.ParsingError
 import com.yahoo.bullet.pubsub.Metadata.Signal
 import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
 import com.yahoo.bullet.querying.{Querier, RateLimitError, RunningQuery}
@@ -34,19 +36,14 @@ object BulletSparkUtils {
       if (signal != null && signal == Metadata.Signal.KILL || signal == Metadata.Signal.COMPLETE) {
         new BulletSignalData(metadata, signal)
       } else {
-        val runningQuery = new RunningQuery(id, content, config)
-        val querier = new Querier(runningQuery, config)
-        val errors = querier.initialize()
-        if (errors.isPresent) {
-          new BulletErrorData(metadata, errors.get().asScala.toList)
-        } else {
-          new RunningQueryData(metadata, runningQuery)
-        }
+        val query: Query = SerializerDeserializer.fromBytes(content)
+        val runningQuery = new RunningQuery(id, query, metadata)
+        new RunningQueryData(metadata, runningQuery)
       }
     } catch {
       case e: RuntimeException =>
         // Includes JSONParseException.
-        new BulletErrorData(metadata, ParsingError.makeError(e, content))
+        new BulletErrorData(metadata, BulletError.makeError("Failed to initialize query for request " + id + ": " + e.getMessage, ""))
     }
   }
 
@@ -56,10 +53,7 @@ object BulletSparkUtils {
    */
   def createBulletQuerier(runningQuery: RunningQuery, mode: Querier.Mode,
                           broadcastedConfig: Broadcast[BulletSparkConfig]): Querier = {
-    val querier = new Querier(mode, runningQuery, broadcastedConfig.value)
-    // No errors here since we already caught all errors when creating runningQuery.
-    querier.initialize()
-    querier
+    new Querier(mode, runningQuery, broadcastedConfig.value)
   }
 
   /**
@@ -111,15 +105,16 @@ object BulletSparkUtils {
    * Create a feedback PubSubMessage for signals.
    */
   def createFeedbackMessage(id: String, signal: Signal): PubSubMessage = {
-    val metadata = new Metadata(signal, null)
-    new PubSubMessage(id, null, metadata)
+    new PubSubMessage(id, signal)
   }
 
   private def withSignal(metadata: Metadata, signal: Signal): Metadata = {
-    val copy = new Metadata(signal, null)
-    if (metadata != null) {
-      copy.setContent(metadata.getContent)
+    if (metadata == null) {
+      new Metadata(signal, null)
+    } else {
+      val copy = metadata.copy()
+      copy.setSignal(signal)
+      copy
     }
-    copy
   }
 }
