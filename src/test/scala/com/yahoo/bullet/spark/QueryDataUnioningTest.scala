@@ -5,19 +5,22 @@
  */
 package com.yahoo.bullet.spark
 
+import com.yahoo.bullet.common.SerializerDeserializer
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-
-import com.yahoo.bullet.parsing.Aggregation.Type.RAW
-import com.yahoo.bullet.parsing.QueryUtils.{makeAggregationQuery, makeFieldFilterQuery}
-import com.yahoo.bullet.parsing.Window
 import com.yahoo.bullet.pubsub.Metadata.Signal
-import com.yahoo.bullet.pubsub.PubSubMessage
+import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
+import com.yahoo.bullet.query.{Projection, Query, Window}
+import com.yahoo.bullet.query.QueryUtils.makeFieldFilterQuery
+import com.yahoo.bullet.query.aggregations.Raw
 import com.yahoo.bullet.spark.data.{BulletData, BulletErrorData, BulletSignalData, RunningQueryData}
 import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkUtils}
 import org.apache.spark.rdd.RDD
 
 class QueryDataUnioningTest extends BulletSparkTest {
+  private val metadata = new Metadata()
+
   behavior of "The query data unioning stage"
 
   it should "output all valid queries" in {
@@ -34,20 +37,18 @@ class QueryDataUnioningTest extends BulletSparkTest {
     ssc.checkpoint("target/spark-test")
     ssc.start()
 
-    val pubSubMessage1 = new PubSubMessage("id1", makeFieldFilterQuery("b235gf23b"))
+    val query = makeFieldFilterQuery("b235gf23b")
+    val pubSubMessage1 = new PubSubMessage("id1", SerializerDeserializer.toBytes(query), metadata)
     // Json parsing error.
     val pubSubMessage2 = new PubSubMessage("id2", "This is a json parsing error pubsub message.")
-    // Window initialization error.
-    val pubSubMessage3 = new PubSubMessage("id3", makeAggregationQuery(
-      RAW, null, Window.Unit.RECORD, 10, Window.Unit.RECORD, 9))
-    inputQueries += sc.makeRDD(Seq(pubSubMessage1, pubSubMessage2, pubSubMessage3))
+    inputQueries += sc.makeRDD(Seq(pubSubMessage1, pubSubMessage2))
     wait1second() // T = 1s
 
     eventually {
       val list = outputCollector.last.toList
-      list.length should equal(3)
+      list.length should equal(2)
       list.count(_._2.isInstanceOf[RunningQueryData]) should equal(1)
-      list.count(_._2.isInstanceOf[BulletErrorData]) should equal(2)
+      list.count(_._2.isInstanceOf[BulletErrorData]) should equal(1)
     }
 
     wait1second() // T = 2s
@@ -90,7 +91,8 @@ class QueryDataUnioningTest extends BulletSparkTest {
     ssc.checkpoint("target/spark-test")
     ssc.start()
 
-    val pubSubMessage1 = new PubSubMessage("id1", "{\"duration\" = 1}")
+    val query = new Query(new Projection(), null, new Raw(1), null, new Window(), 1L)
+    val pubSubMessage1 = new PubSubMessage("id1", SerializerDeserializer.toBytes(query), metadata)
     inputQueries += sc.makeRDD(Seq(pubSubMessage1))
     wait1second() // T = 1s
 

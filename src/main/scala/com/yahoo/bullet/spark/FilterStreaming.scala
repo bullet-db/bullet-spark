@@ -35,14 +35,14 @@ object FilterStreaming {
    *                           that has been validated.
    * @return A [[com.yahoo.bullet.spark.data.BulletData]] stream which contains the intermediate results for queries.
    */
-  def filter(queryStream: DStream[(String, RunningQueryData)], bulletRecordStream: DStream[BulletRecord[_ <: Serializable]],
+  def filter(queryStream: DStream[(String, RunningQueryData)], bulletRecordStream: DStream[BulletRecord[_ <: java.io.Serializable]],
              broadcastedConfig: Broadcast[BulletSparkConfig]): DStream[(String, BulletData)] = {
     queryStream.transformWith(bulletRecordStream, makeTransformFunc(broadcastedConfig) _).cache()
   }
 
   private def makeTransformFunc(broadcastedConfig: Broadcast[BulletSparkConfig])
                                (validQueriesRDD: RDD[(String, RunningQueryData)],
-                                bulletRecordRDD: RDD[BulletRecord[_ <: Serializable]]): RDD[(String, BulletData)] = {
+                                bulletRecordRDD: RDD[BulletRecord[_ <: java.io.Serializable]]): RDD[(String, BulletData)] = {
     // Broadcast valid queries and join with the BulletRecord stream to generate partial results which have already
     // consumed the BulletRecord instances successfully.
     val queries = validQueriesRDD.collect()
@@ -70,7 +70,7 @@ object FilterStreaming {
     }
   }
 
-  private def runInParallel(queries: Array[(String, RunningQueryData)], records: List[BulletRecord[_ <: Serializable]],
+  private def runInParallel(queries: Array[(String, RunningQueryData)], records: List[BulletRecord[_ <: java.io.Serializable]],
                             broadcastedConfig: Broadcast[BulletSparkConfig], filterParallelism: Int
                            ): Iterable[(String, BulletData)] = {
     val outputs = ArrayBuffer.empty[(String, BulletData)]
@@ -100,7 +100,7 @@ object FilterStreaming {
     outputs
   }
 
-  private def process(queryList: Array[(String, RunningQueryData)], records: List[BulletRecord[_ <: Serializable]],
+  private def process(queryList: Array[(String, RunningQueryData)], records: List[BulletRecord[_ <: java.io.Serializable]],
                       broadcastedConfig: Broadcast[BulletSparkConfig]): Iterable[(String, BulletData)] = {
     val queryManager = new QueryManager(broadcastedConfig.value)
     queryList.foreach {
@@ -116,7 +116,7 @@ object FilterStreaming {
     outputs
   }
 
-  private def onData(queryMap: Map[String, RunningQueryData], queryManager: QueryManager, record: BulletRecord[_ <: Serializable],
+  private def onData(queryMap: Map[String, RunningQueryData], queryManager: QueryManager, record: BulletRecord[_ <: java.io.Serializable],
                      outputs: ArrayBuffer[(String, BulletData)], hasDataQueries: mutable.Map[String, Querier]): Unit = {
     val queryCategorizer = queryManager.categorize(record)
 

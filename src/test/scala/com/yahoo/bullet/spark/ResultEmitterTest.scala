@@ -5,17 +5,12 @@
  */
 package com.yahoo.bullet.spark
 
-// scalastyle:off
-import scala.collection.JavaConverters._
-// scalastyle:on
 import scala.collection.mutable
 
 import com.yahoo.bullet.common.BulletError
-import com.yahoo.bullet.parsing.Aggregation.Type.RAW
-import com.yahoo.bullet.parsing.Clause.Operation
-import com.yahoo.bullet.parsing.QueryUtils.makeSimpleAggregationFilterQuery
+import com.yahoo.bullet.pubsub.Metadata
 import com.yahoo.bullet.pubsub.Metadata.Signal
-import com.yahoo.bullet.pubsub.PubSubMessage
+import com.yahoo.bullet.query.QueryUtils.makeFieldFilterQuery
 import com.yahoo.bullet.querying.{Querier, RunningQuery}
 import com.yahoo.bullet.result.RecordBox
 import com.yahoo.bullet.spark.data.{BulletErrorData, BulletResult, QuerierData}
@@ -89,10 +84,8 @@ class ResultEmitterTest extends BulletSparkTest {
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     val broadcastedConfig = BulletSparkConfig.getInstance(ssc, config)
     val inputQueries: mutable.Queue[RDD[(String, BulletResult)]] = mutable.Queue()
-    val pubSubMessage = new PubSubMessage(
-      "id1",
-      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 2))
-    val runningQuery = new RunningQuery("id1", pubSubMessage.getContent, config)
+    val query = makeFieldFilterQuery("b235gf23b", 5)
+    val runningQuery = new RunningQuery("id1", query, new Metadata())
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 

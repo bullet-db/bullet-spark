@@ -24,11 +24,12 @@ class CustomPublisher extends Publisher {
   }
 
   @throws[PubSubException]
-  override def send(message: PubSubMessage): Unit = {
+  override def send(message: PubSubMessage): PubSubMessage = {
     if (closed || message == null) {
       throw new PubSubException("")
     }
     sent += message
+    message
   }
 
   override def close(): Unit = {

@@ -7,15 +7,11 @@ package com.yahoo.bullet.spark
 
 import java.io.File
 
-// scalastyle:off
-import scala.collection.JavaConverters._
-// scalastyle:on
-
-import com.yahoo.bullet.parsing.Aggregation.Type.RAW
-import com.yahoo.bullet.parsing.Clause.Operation
-import com.yahoo.bullet.parsing.QueryUtils.makeSimpleAggregationFilterQuery
-import com.yahoo.bullet.pubsub.PubSubMessage
+import com.yahoo.bullet.common.SerializerDeserializer
+import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
+import com.yahoo.bullet.query.QueryUtils.makeFieldFilterQuery
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
+
 import org.apache.commons.io.FileUtils
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Span}
@@ -23,6 +19,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 
 class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with BeforeAndAfter with Eventually {
+  private val metadata = new Metadata()
   // Override waiting time to 10s since it's a spark streaming with checkpoint.
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(10000, Millis)))
 
@@ -40,10 +37,8 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Before
     val ssc = job.getOrCreateContext(config)
     ssc.start()
 
-    val json = makeSimpleAggregationFilterQuery("field", List("fake_field").asJava, Operation.EQUALS, RAW, 1)
-
-
-    val message = new PubSubMessage("42", json)
+    val query = makeFieldFilterQuery("fake_field")
+    val message = new PubSubMessage("42", SerializerDeserializer.toBytes(query), metadata)
     CustomSubscriber.subscriber.open()
     CustomSubscriber.subscriber.addMessages(message)
 
@@ -62,8 +57,8 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Before
 
     val ssc1 = job.getOrCreateContext(config)
     ssc1.start()
-    val json = makeSimpleAggregationFilterQuery("field", List("fake_field").asJava, Operation.EQUALS, RAW, 1)
-    val message = new PubSubMessage("42", json)
+    val query = makeFieldFilterQuery("fake_field")
+    val message = new PubSubMessage("42", SerializerDeserializer.toBytes(query), metadata)
     CustomSubscriber.subscriber.open()
     CustomSubscriber.subscriber.addMessages(message)
     

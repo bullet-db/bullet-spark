@@ -5,19 +5,15 @@
  */
 package com.yahoo.bullet.spark
 
-// scalastyle:off
-import scala.collection.JavaConverters._
-// scalastyle:on
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import com.yahoo.bullet.common.BulletConfig
-import com.yahoo.bullet.parsing.Aggregation.Type.RAW
-import com.yahoo.bullet.parsing.Clause.Operation
-import com.yahoo.bullet.parsing.QueryUtils.{makeAggregationQuery, makeSimpleAggregationFilterQuery}
-import com.yahoo.bullet.parsing.Window
 import com.yahoo.bullet.pubsub.Metadata.Signal
 import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
+import com.yahoo.bullet.query.QueryUtils.{makeFieldFilterQuery, makeSimpleAggregationQuery}
+import com.yahoo.bullet.query.Window
 import com.yahoo.bullet.querying.{Querier, RateLimitError, RunningQuery}
 import com.yahoo.bullet.result.RecordBox
 import com.yahoo.bullet.spark.data.{
@@ -36,9 +32,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 2))
-    val runningQuery = new RunningQuery("id", pubSubMessage.getContent, config)
+    val query = makeFieldFilterQuery("b235gf23b", 2)
+    val runningQuery = new RunningQuery("id", query, metadata)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 
@@ -77,9 +72,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 1))
-    val runningQuery = new RunningQuery("id", pubSubMessage.getContent, config)
+    val query = makeFieldFilterQuery("b235gf23b")
+    val runningQuery = new RunningQuery("id", query, metadata)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 
@@ -107,9 +101,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 3))
-    val runningQuery = new ExpiredRunningQuery("id", pubSubMessage.getContent, config)
+    val query = makeFieldFilterQuery("b235gf23b", 3)
+    val runningQuery = new ExpiredRunningQuery("id", query, metadata)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 
@@ -136,9 +129,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 2))
-    val runningQuery = new RunningQuery("id", pubSubMessage.getContent, config)
+    val query = makeFieldFilterQuery("b235gf23b", 2)
+    val runningQuery = new RunningQuery("id", query, metadata)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 
@@ -174,9 +166,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 2))
-    val runningQuery = new RunningQuery("id", pubSubMessage.getContent, config)
+    val query = makeFieldFilterQuery("b235gf23b", 2)
+    val runningQuery = new RunningQuery("id", query, metadata)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 
@@ -263,9 +254,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeAggregationQuery(RAW, null, Window.Unit.RECORD, 1, Window.Unit.RECORD, 1))
-    val runningQuery = new RunningQuery("id", pubSubMessage.getContent, config)
+    val query = makeSimpleAggregationQuery(1, Window.Unit.RECORD, 1, Window.Unit.RECORD, 1)
+    val runningQuery = new RunningQuery("id", query, metadata)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 
@@ -308,9 +298,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeAggregationQuery(RAW, null, Window.Unit.RECORD, 1, Window.Unit.RECORD, 1))
-    val runningQuery = new RunningQuery("id", pubSubMessage.getContent, config)
+    val query = makeSimpleAggregationQuery(1, Window.Unit.RECORD, 1, Window.Unit.RECORD, 1)
+    val runningQuery = new RunningQuery("id", query, metadata)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 
@@ -357,9 +346,8 @@ class JoinStreamingTest extends BulletSparkTest {
     val inputQueries: mutable.Queue[RDD[(String, BulletData)]] = mutable.Queue()
     val outputCollector = ListBuffer.empty[Array[(String, BulletResult)]]
 
-    val pubSubMessage = new PubSubMessage("id",
-      makeSimpleAggregationFilterQuery("field", List("b235gf23b").asJava, Operation.EQUALS, RAW, 3))
-    val runningQuery = new CustomRunningQuery("id", pubSubMessage.getContent, config, 4)
+    val query = makeFieldFilterQuery("b235gf23b", 3)
+    val runningQuery = new CustomRunningQuery("id", query, metadata, 4)
 
     val inputQueryStream = ssc.queueStream(inputQueries)
 

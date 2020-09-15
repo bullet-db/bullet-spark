@@ -25,7 +25,7 @@ class DataProducerTest extends BulletSparkTest {
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     val producer = DataProducer.getProducer(config)
 
-    val outputCollector = ListBuffer.empty[Array[BulletRecord]]
+    val outputCollector = ListBuffer.empty[Array[BulletRecord[_ <: java.io.Serializable]]]
 
     val outputStream = producer.getBulletRecordStream(ssc, config)
 
