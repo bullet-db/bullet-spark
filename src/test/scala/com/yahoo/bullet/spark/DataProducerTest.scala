@@ -36,7 +36,7 @@ class DataProducerTest extends BulletSparkTest {
     eventually {
       wait1second()
       outputCollector.flatten should not equal List.empty
-      outputCollector.flatten.count(_.get("field") != "fake_field") should equal(0)
+      outputCollector.flatten.count(_.typedGet("field").getValue != "fake_field") should equal(0)
     }
   }
 }

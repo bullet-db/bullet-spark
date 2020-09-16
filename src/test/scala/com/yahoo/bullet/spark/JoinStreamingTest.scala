@@ -60,7 +60,6 @@ class JoinStreamingTest extends BulletSparkTest {
     bulletQuery2.consume(RecordBox.get.add("field", "b235gf23b").getRecord)
     inputQueries += sc.makeRDD(Seq(("id", new FilterResultData(metadata, runningQuery, bulletQuery2.getData))))
 
-
     wait1second() // T = 2s
 
     eventually {
