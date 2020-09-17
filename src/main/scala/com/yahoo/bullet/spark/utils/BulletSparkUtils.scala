@@ -6,14 +6,13 @@
 package com.yahoo.bullet.spark.utils
 
 // scalastyle:off
-import com.yahoo.bullet.common.{BulletError, SerializerDeserializer}
-import com.yahoo.bullet.query.Query
-
 import scala.collection.JavaConverters._
 // scalastyle:on
 
+import com.yahoo.bullet.common.{BulletError, SerializerDeserializer}
 import com.yahoo.bullet.pubsub.Metadata.Signal
 import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
+import com.yahoo.bullet.query.Query
 import com.yahoo.bullet.querying.{Querier, RateLimitError, RunningQuery}
 import com.yahoo.bullet.result.{Clip, Meta}
 import com.yahoo.bullet.spark.data.{BulletData, BulletErrorData, BulletSignalData, QuerierData, RunningQueryData}
