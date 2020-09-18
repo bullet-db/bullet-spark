@@ -24,7 +24,7 @@ object QueryDataUnioning {
    * @return A tuple with the input query stream and the BulletRecord stream.
    */
   def receive(ssc: StreamingContext, broadcastedConfig: Broadcast[BulletSparkConfig]
-             ): (DStream[(String, BulletData)], DStream[BulletRecord]) = {
+             ): (DStream[(String, BulletData)], DStream[BulletRecord[_ <: java.io.Serializable]]) = {
     val config = broadcastedConfig.value
     val queryCoalescePartitions = config.get(BulletSparkConfig.QUERY_COALESCE_PARTITIONS).asInstanceOf[Int]
     // Input query stream.
@@ -81,7 +81,7 @@ object QueryDataUnioning {
     }
   }
 
-  private def getBulletRecordStream(ssc: StreamingContext, config: BulletSparkConfig): DStream[BulletRecord] = {
+  private def getBulletRecordStream(ssc: StreamingContext, config: BulletSparkConfig): DStream[BulletRecord[_ <: java.io.Serializable]] = {
     // Setup and combine the BulletRecord input streams.
     val bulletRecordParallelism = config.get(BulletSparkConfig.DATA_PRODUCER_PARALLELISM).asInstanceOf[Int]
     val bulletRecordStreams =

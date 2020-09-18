@@ -49,5 +49,5 @@ trait DataProducer {
    * @param config The [[com.yahoo.bullet.spark.utils.BulletSparkConfig]] containing all the settings.
    * @return The BulletRecord stream, which will be used as the input to Bullet.
    */
-  def getBulletRecordStream(ssc: StreamingContext, config: BulletSparkConfig): DStream[BulletRecord]
+  def getBulletRecordStream(ssc: StreamingContext, config: BulletSparkConfig): DStream[BulletRecord[_ <: java.io.Serializable]]
 }

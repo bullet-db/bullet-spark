@@ -7,7 +7,8 @@ package com.yahoo.bullet.spark
 
 import java.io.File
 
-import com.yahoo.bullet.common.BulletConfig
+import com.yahoo.bullet.pubsub.Metadata
+import com.yahoo.bullet.query.Query
 import com.yahoo.bullet.querying.RunningQuery
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
 import org.apache.commons.io.FileUtils
@@ -17,18 +18,18 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-class NeverExpiringRunningQuery(id: String, queryString: String, config: BulletConfig)
-  extends RunningQuery(id, queryString, config) {
+class NeverExpiringRunningQuery(id: String, query: Query, metadata: Metadata)
+  extends RunningQuery(id, query, metadata) {
   override def isTimedOut: Boolean = false
 }
 
-class ExpiredRunningQuery(id: String, queryString: String, config: BulletConfig)
-  extends RunningQuery(id, queryString, config) {
+class ExpiredRunningQuery(id: String, query: Query, metadata: Metadata)
+  extends RunningQuery(id, query, metadata) {
   override def isTimedOut: Boolean = true
 }
 
-class CustomRunningQuery(id: String, queryString: String, config: BulletConfig, val expireAfter: Int)
-  extends RunningQuery(id, queryString, config) {
+class CustomRunningQuery(id: String, query: Query, metadata: Metadata, val expireAfter: Int)
+  extends RunningQuery(id, query, metadata) {
   var i = 0
 
   override def isTimedOut: Boolean = {

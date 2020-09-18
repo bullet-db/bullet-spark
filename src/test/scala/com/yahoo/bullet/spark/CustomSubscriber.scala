@@ -50,11 +50,11 @@ class CustomSubscriber extends Subscriber {
     closed = true
   }
 
-  override def commit(id: String, sequence: Int): Unit = {
+  override def commit(id: String): Unit = {
     committed += id
   }
 
-  override def fail(id: String, sequence: Int): Unit = {
+  override def fail(id: String): Unit = {
     failed += id
   }
 }

@@ -13,7 +13,7 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.receiver.Receiver
 
 class MockDataReceiver(val config: BulletSparkConfig)
-  extends Receiver[BulletRecord](StorageLevel.MEMORY_AND_DISK_SER) {
+  extends Receiver[BulletRecord[_ <: java.io.Serializable]](StorageLevel.MEMORY_AND_DISK_SER) {
   override def onStart(): Unit = {
     new Thread() {
       override def run(): Unit = {
@@ -39,9 +39,9 @@ class MockDataReceiver(val config: BulletSparkConfig)
 }
 
 class MockDataProducer extends DataProducer {
-  override def getBulletRecordStream(ssc: StreamingContext, config: BulletSparkConfig): DStream[BulletRecord] = {
+  override def getBulletRecordStream(ssc: StreamingContext, config: BulletSparkConfig): DStream[BulletRecord[_ <: java.io.Serializable]] = {
     // Bullet record input stream.
     val bulletReceiver = new MockDataReceiver(config)
-    ssc.receiverStream(bulletReceiver).asInstanceOf[DStream[BulletRecord]]
+    ssc.receiverStream(bulletReceiver).asInstanceOf[DStream[BulletRecord[_ <: java.io.Serializable]]]
   }
 }
