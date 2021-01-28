@@ -37,6 +37,10 @@ class FixedClock(var currentTime: Long) extends org.apache.spark.util.Clock {
     currentTime
   }
 
+  override def nanoTime(): Long = synchronized {
+    currentTime * 1000
+  }
+
   override def waitTillTime(targetTime: Long): Long = synchronized {
     while (currentTime < targetTime) {
       wait(10)
