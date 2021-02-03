@@ -23,6 +23,7 @@ class DSLReceiverTest extends BulletSparkTest {
   }
 
   it should "output messages" in {
+    //val config = new BulletSparkConfig("src/test/resources/test_dsl_config.yaml")
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
 

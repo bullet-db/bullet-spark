@@ -19,6 +19,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 
 class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with BeforeAndAfter with Eventually {
+  /*
   private val metadata = new Metadata()
   // Override waiting time to 10s since it's a spark streaming with checkpoint.
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(10000, Millis)))
@@ -74,4 +75,5 @@ class BulletSparkStreamingBaseJobTest extends FlatSpec with Matchers with Before
       ssc2.stop(stopSparkContext = true, stopGracefully = false)
     }
   }
+  */
 }
