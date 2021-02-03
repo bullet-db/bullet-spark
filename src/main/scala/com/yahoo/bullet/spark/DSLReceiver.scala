@@ -1,13 +1,18 @@
+/*
+ *  Copyright 2021, Yahoo Inc.
+ *  Licensed under the terms of the Apache License, Version 2.0.
+ *  See the LICENSE file associated with the project for terms.
+ */
 package com.yahoo.bullet.spark
 
 import com.yahoo.bullet.dsl.BulletDSLConfig
 import com.yahoo.bullet.dsl.connector.BulletConnector
-import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkLogger}
+import com.yahoo.bullet.spark.utils.BulletSparkLogger
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.receiver.Receiver
 
 /**
-  * Constructor that does something.
+  * Create a DSLReceiver from the given configuration.
   *
   * @param config The { @link BulletDSLConfig} to load settings from.
   */
@@ -15,8 +20,13 @@ class DSLReceiver(val config: BulletDSLConfig) extends Receiver[AnyRef](StorageL
   private var connector: BulletConnector = _
 
   override def onStart(): Unit = {
-    connector = BulletConnector.from(config)
-    connector.initialize()
+    try {
+      connector = BulletConnector.from(config)
+      connector.initialize()
+    } catch {
+      case e: Exception =>
+        throw new RuntimeException("Cannot create BulletConnector instance or initialize it.", e)
+    }
     new Thread() {
       override def run(): Unit = {
         receive()
@@ -34,11 +44,11 @@ class DSLReceiver(val config: BulletDSLConfig) extends Receiver[AnyRef](StorageL
   }
 
   private def receive(): Unit = {
-    while (!isStopped) {
+    while (!isStopped()) {
       try {
         val objects = connector.read()
         if (!objects.isEmpty) {
-          store(objects.listIterator())
+          store(objects.iterator())
         }
       } catch {
         case t: Throwable =>

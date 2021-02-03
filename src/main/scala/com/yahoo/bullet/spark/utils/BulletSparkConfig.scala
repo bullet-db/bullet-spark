@@ -17,10 +17,7 @@ object BulletSparkConfig {
   val QUERY_BLOCK_SIZE = "bullet.spark.receiver.query.block.size"
   val QUERY_COALESCE_PARTITIONS = "bullet.spark.receiver.query.coalesce.partitions"
   val BATCH_DURATION_MS = "bullet.spark.batch.duration.ms"
-
   val DSL_DATA_PRODUCER_ENABLE = "bullet.spark.dsl.data.producer.enable"
-
-
   val DATA_PRODUCER_PARALLELISM = "bullet.spark.data.producer.parallelism"
   val DATA_PRODUCER_CLASS_NAME = "bullet.spark.data.producer.class.name"
   val CHECKPOINT_DIR = "bullet.spark.checkpoint.dir"
@@ -55,6 +52,7 @@ object BulletSparkConfig {
   private val DEFAULT_QUERY_BLOCK_SIZE = 1
   private val DEFAULT_QUERY_COALESCE_PARTITIONS = 10
   private val DEFAULT_BATCH_DURATION_MS = 1000
+  private val DEFAULT_DSL_DATA_PRODUCER_ENABLE = false
   private val DEFAULT_DATA_PRODUCER_PARALLELISM = 1
   private val DEFAULT_CHECKPOINT_DIR = "/tmp/spark-checkpoint"
   private val DEFAULT_RECOVER_FROM_CHECKPOINT_ENABLE = false
@@ -80,6 +78,9 @@ object BulletSparkConfig {
            .defaultTo(DEFAULT_BATCH_DURATION_MS)
            .checkIf(asJavaPredicate(Validator.isPositiveInt))
            .castTo(asJavaFunction(Validator.asInt))
+  VALIDATOR.define(DSL_DATA_PRODUCER_ENABLE)
+           .defaultTo(DEFAULT_DSL_DATA_PRODUCER_ENABLE)
+           .checkIf(asJavaPredicate(Validator.isBoolean))
   VALIDATOR.define(DATA_PRODUCER_PARALLELISM)
            .defaultTo(DEFAULT_DATA_PRODUCER_PARALLELISM)
            .checkIf(asJavaPredicate(Validator.isPositiveInt))
