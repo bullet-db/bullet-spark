@@ -23,5 +23,8 @@ class DSLDataProducer extends DataProducer {
     val converter = BulletRecordConverter.from(config)
     val deserializer = BulletDeserializer.from(config)
     ssc.receiverStream(receiver).map(deserializer.deserialize).map(converter.convert)
+
+
+    //ssc.receiverStream(receiver).asInstanceOf[DStream[BulletRecord[_ <: java.io.Serializable]]]
   }
 }

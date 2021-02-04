@@ -12,15 +12,15 @@ import java.util
 class MockConnector(val configuration: BulletConfig) extends BulletConnector(configuration) {
 
   override def initialize(): Unit = {
-    val shouldThrow = config.get("DSLReceiverTest").asInstanceOf[Boolean]
+    val shouldThrow = config.get("shouldThrow").asInstanceOf[Boolean]
     if (shouldThrow) {
       throw new RuntimeException("throwing mock exception")
     }
   }
 
-  override def read(): util.List[AnyRef] = {
+  override def read(): util.List[Object] = {
     var map = new util.HashMap[String, Object]()
-    //map.put("count", 1L)
+    map.put("count", Int.box(1))
     map.put("field", "fake_field")
     var list = new util.ArrayList[Object]()
     list.add(map)

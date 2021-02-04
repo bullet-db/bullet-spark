@@ -46,20 +46,6 @@
     </properties>
 
     <dependencies>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${kafka.clients.version}</version>
-            <!--<scope>provided</scope>-->
-        </dependency>
-        <dependency>
-            <groupId>org.apache.pulsar</groupId>
-            <artifactId>pulsar-client</artifactId>
-            <version>${pulsar.client.version}</version>
-            <!--<scope>provided</scope>-->
-        </dependency>
-
         <!-- Provided -->
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -89,7 +75,7 @@
             <groupId>com.yahoo.bullet</groupId>
             <artifactId>bullet-dsl</artifactId>
             <version>${bullet.dsl.version}</version>
-            <!--<scope>provided</scope>-->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

@@ -16,7 +16,7 @@ class DSLReceiverTest extends BulletSparkTest {
   it should "throw exception on failing to create a connector" in {
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
-    config.set("DSLReceiverTest", true)
+    config.set("shouldThrow", true)
     the[RuntimeException] thrownBy {
       new DSLReceiver(new BulletDSLConfig(config)).onStart()
     } should have message "Cannot create BulletConnector instance or initialize it."
@@ -38,7 +38,50 @@ class DSLReceiverTest extends BulletSparkTest {
 
     eventually {
       wait1second()
-      outputCollector.flatten should not equal List.empty
+      outputCollector.flatten.toList should equal(List.empty)
+      outputCollector.flatten.toList should not equal List.empty
+    }
+  }
+
+  it should "output messages 2" in {
+    //val config = new BulletSparkConfig("src/test/resources/test_dsl_config.yaml")
+    val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
+    config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
+
+    val dslReceiver = new DSLReceiver(new BulletDSLConfig(config))
+
+    val outputCollector = ListBuffer.empty[Array[AnyRef]]
+
+    val dataStream = ssc.receiverStream(dslReceiver)
+    dataStream.foreachRDD(rdd => outputCollector += rdd.collect())
+
+    ssc.start()
+
+    eventually {
+      wait1second()
+      outputCollector.flatten.toList should equal(List.empty)
+      outputCollector.flatten.toList should not equal List.empty
+    }
+  }
+
+  it should "output messages 3" in {
+    //val config = new BulletSparkConfig("src/test/resources/test_dsl_config.yaml")
+    val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
+    config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
+
+    val dslReceiver = new DSLReceiver(new BulletDSLConfig(config))
+
+    val outputCollector = ListBuffer.empty[Array[AnyRef]]
+
+    val dataStream = ssc.receiverStream(dslReceiver)
+    dataStream.foreachRDD(rdd => outputCollector += rdd.collect())
+
+    ssc.start()
+
+    eventually {
+      wait1second()
+      outputCollector.flatten.toList should equal(List.empty)
+      outputCollector.flatten.toList should not equal List.empty
     }
   }
 }

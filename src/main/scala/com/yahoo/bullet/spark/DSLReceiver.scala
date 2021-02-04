@@ -7,6 +7,7 @@ package com.yahoo.bullet.spark
 
 import com.yahoo.bullet.dsl.BulletDSLConfig
 import com.yahoo.bullet.dsl.connector.BulletConnector
+import com.yahoo.bullet.record.simple.TypedSimpleBulletRecord
 import com.yahoo.bullet.spark.utils.BulletSparkLogger
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.receiver.Receiver
@@ -16,7 +17,7 @@ import org.apache.spark.streaming.receiver.Receiver
   *
   * @param config The { @link BulletDSLConfig} to load settings from.
   */
-class DSLReceiver(val config: BulletDSLConfig) extends Receiver[AnyRef](StorageLevel.MEMORY_AND_DISK_SER) with BulletSparkLogger {
+class DSLReceiver(val config: BulletDSLConfig) extends Receiver[Object](StorageLevel.MEMORY_AND_DISK_SER) with BulletSparkLogger {
   private var connector: BulletConnector = _
 
   override def onStart(): Unit = {
@@ -38,8 +39,8 @@ class DSLReceiver(val config: BulletDSLConfig) extends Receiver[AnyRef](StorageL
   override def onStop(): Unit = {
     if (connector != null) {
       connector.close()
+      connector = null
     }
-    connector = null
     logger.info("DSL receiver stopped.")
   }
 
@@ -50,10 +51,12 @@ class DSLReceiver(val config: BulletDSLConfig) extends Receiver[AnyRef](StorageL
         if (!objects.isEmpty) {
           store(objects.iterator())
         }
+        //store(new TypedSimpleBulletRecord())
       } catch {
         case t: Throwable =>
           if (connector != null) {
             connector.close()
+            connector = null
           }
           restart("Error receiving data.", t)
       }
