@@ -7,7 +7,6 @@ package com.yahoo.bullet.spark
 
 import com.yahoo.bullet.dsl.BulletDSLConfig
 import com.yahoo.bullet.dsl.connector.BulletConnector
-import com.yahoo.bullet.record.simple.TypedSimpleBulletRecord
 import com.yahoo.bullet.spark.utils.BulletSparkLogger
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.receiver.Receiver
@@ -51,7 +50,6 @@ class DSLReceiver(val config: BulletDSLConfig) extends Receiver[Object](StorageL
         if (!objects.isEmpty) {
           store(objects.iterator())
         }
-        //store(new TypedSimpleBulletRecord())
       } catch {
         case t: Throwable =>
           if (connector != null) {

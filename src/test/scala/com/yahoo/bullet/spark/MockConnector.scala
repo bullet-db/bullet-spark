@@ -25,7 +25,6 @@ class MockConnector(val configuration: BulletConfig) extends BulletConnector(con
     var list = new util.ArrayList[Object]()
     list.add(map)
     list
-    //List(Map("count" -> 1, "field" -> "fake_field").asJava).asJava.asInstanceOf[util.List[AnyRef]]
   }
 
   override def close(): Unit = {}
