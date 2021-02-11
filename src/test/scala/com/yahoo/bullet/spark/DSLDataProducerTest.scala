@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.spark
 
-import java.util
+import java.util.Collections
 
 import com.yahoo.bullet.dsl.BulletDSLConfig
 import com.yahoo.bullet.record.BulletRecord
@@ -34,10 +34,7 @@ class DSLDataProducerTest extends BulletSparkTest {
 
     outputStream.foreachRDD(rdd => outputCollector += rdd.collect())
 
-    var map = new util.HashMap[String, Object]()
-    map.put("field", "fake_field")
-
-    MockDataSource.data += map
+    MockConnector.data += Collections.singletonList(Collections.singletonMap("field", "fake_field"))
 
     ssc.start()
 

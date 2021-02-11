@@ -5,6 +5,9 @@
  */
 package com.yahoo.bullet.spark
 
+import java.util.Arrays
+import java.util.Collections
+
 import com.yahoo.bullet.dsl.BulletDSLConfig
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
 import org.scalatest.time.{Seconds, Span}
@@ -32,17 +35,37 @@ class DSLReceiverTest extends BulletSparkTest {
     val dataStream = ssc.receiverStream(dslReceiver)
     dataStream.foreachRDD(rdd => outputCollector += rdd.collect())
 
-    MockDataSource.data += "hello"
-    MockDataSource.data += null
-    MockDataSource.data += "world"
-    MockDataSource.data += null
-    MockDataSource.data += "!"
+    MockConnector.data += Arrays.asList("hello", "world")
+    MockConnector.data += Collections.emptyList()
+    MockConnector.data += Collections.singletonList("!")
 
     ssc.start()
 
     eventually (timeout(Span(5, Seconds))) {
       wait1second()
       outputCollector.flatten should equal(List("hello", "world", "!"))
+    }
+  }
+
+  it should "output empty results when the connector throws an exception" in {
+    val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
+    config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
+
+    val dslReceiver = new DSLReceiver(new BulletDSLConfig(config))
+
+    val outputCollector = ListBuffer.empty[Array[AnyRef]]
+
+    val dataStream = ssc.receiverStream(dslReceiver)
+    dataStream.foreachRDD(rdd => outputCollector += rdd.collect())
+
+    MockConnector.closeCalled = false
+
+    ssc.start()
+
+    eventually (timeout(Span(5, Seconds))) {
+      MockConnector.closed = true
+      wait1second()
+      MockConnector.closeCalled should equal(true)
     }
   }
 }

@@ -2,16 +2,19 @@ package com.yahoo.bullet.spark
 
 import com.yahoo.bullet.common.BulletConfig
 import com.yahoo.bullet.dsl.connector.BulletConnector
-import java.util
+import java.util.Collections
+import java.util.List
 
 import scala.collection.mutable.ListBuffer
 
-object MockDataSource {
-  var data: ListBuffer[AnyRef] = ListBuffer.empty[AnyRef]
+object MockConnector {
+  var data: ListBuffer[List[AnyRef]] = ListBuffer.empty[List[AnyRef]]
+  var closed = false
+  var closeCalled = false
 
-  def pop(): AnyRef = {
+  def pop(): List[AnyRef] = {
     if (data.isEmpty) {
-      null
+      Collections.emptyList[AnyRef]
     } else {
       data.remove(0)
     }
@@ -19,16 +22,19 @@ object MockDataSource {
 }
 
 class MockConnector(val configuration: BulletConfig) extends BulletConnector(configuration) {
-  override def initialize(): Unit = {}
-
-  override def read(): util.List[Object] = {
-    val list = new util.ArrayList[Object]()
-    val x = MockDataSource.pop()
-    if (x != null) {
-      list.add(x)
-    }
-    list
+  override def initialize(): Unit = {
+    MockConnector.closed = false
   }
 
-  override def close(): Unit = {}
+  override def read(): List[Object] = {
+    if (MockConnector.closed) {
+      throw new RuntimeException("connector closed")
+    }
+    MockConnector.pop()
+  }
+
+  override def close(): Unit = {
+    MockConnector.closed = true
+    MockConnector.closeCalled = true
+  }
 }
