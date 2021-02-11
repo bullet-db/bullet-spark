@@ -47,7 +47,7 @@ class DSLReceiverTest extends BulletSparkTest {
     }
   }
 
-  it should "output empty results when the connector throws an exception" in {
+  it should "close the connector when the connector throws an exception" in {
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
 

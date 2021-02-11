@@ -18,7 +18,7 @@ class DSLDataProducerTest extends BulletSparkTest {
   behavior of "The dsl bullet record producer"
 
   it should "create a dsl producer successfully" in {
-    val config = new BulletSparkConfig("src/test/resources/test_dsl_config.yaml")
+    val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     config.set(BulletSparkConfig.DSL_DATA_PRODUCER_ENABLE, true)
     config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
     config.set(BulletDSLConfig.DESERIALIZER_CLASS_NAME, "com.yahoo.bullet.dsl.deserializer.IdentityDeserializer")
