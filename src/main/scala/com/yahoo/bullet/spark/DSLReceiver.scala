@@ -14,10 +14,10 @@ import org.apache.spark.streaming.receiver.Receiver
 /**
   * Create a DSLReceiver from the given configuration.
   *
-  * @param config The { @link BulletDSLConfig} to load settings from.
+  * @param config The {@link BulletDSLConfig} to load settings from.
   */
 class DSLReceiver(val config: BulletDSLConfig) extends Receiver[Object](StorageLevel.MEMORY_AND_DISK_SER) with BulletSparkLogger {
-  private var connector: BulletConnector = _
+  var connector: BulletConnector = _
 
   override def onStart(): Unit = {
     try {

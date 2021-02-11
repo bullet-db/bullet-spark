@@ -7,6 +7,7 @@ package com.yahoo.bullet.spark
 
 import com.yahoo.bullet.dsl.BulletDSLConfig
 import com.yahoo.bullet.spark.utils.BulletSparkConfig
+import org.scalatest.time.{Seconds, Span}
 
 import scala.collection.mutable.ListBuffer
 
@@ -15,15 +16,12 @@ class DSLReceiverTest extends BulletSparkTest {
 
   it should "throw exception on failing to create a connector" in {
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
-    config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
-    config.set("shouldThrow", true)
     the[RuntimeException] thrownBy {
       new DSLReceiver(new BulletDSLConfig(config)).onStart()
     } should have message "Cannot create BulletConnector instance or initialize it."
   }
 
-  it should "output messages" in {
-    //val config = new BulletSparkConfig("src/test/resources/test_dsl_config.yaml")
+  it should "output objects which are received" in {
     val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
     config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
 
@@ -34,54 +32,17 @@ class DSLReceiverTest extends BulletSparkTest {
     val dataStream = ssc.receiverStream(dslReceiver)
     dataStream.foreachRDD(rdd => outputCollector += rdd.collect())
 
-    ssc.start()
-
-    eventually {
-      wait1second()
-      outputCollector.flatten.toList should equal(List.empty)
-      outputCollector.flatten.toList should not equal List.empty
-    }
-  }
-
-  it should "output messages 2" in {
-    //val config = new BulletSparkConfig("src/test/resources/test_dsl_config.yaml")
-    val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
-    config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
-
-    val dslReceiver = new DSLReceiver(new BulletDSLConfig(config))
-
-    val outputCollector = ListBuffer.empty[Array[AnyRef]]
-
-    val dataStream = ssc.receiverStream(dslReceiver)
-    dataStream.foreachRDD(rdd => outputCollector += rdd.collect())
+    MockDataSource.data += "hello"
+    MockDataSource.data += null
+    MockDataSource.data += "world"
+    MockDataSource.data += null
+    MockDataSource.data += "!"
 
     ssc.start()
 
-    eventually {
+    eventually (timeout(Span(5, Seconds))) {
       wait1second()
-      outputCollector.flatten.toList should equal(List.empty)
-      outputCollector.flatten.toList should not equal List.empty
-    }
-  }
-
-  it should "output messages 3" in {
-    //val config = new BulletSparkConfig("src/test/resources/test_dsl_config.yaml")
-    val config = new BulletSparkConfig("src/test/resources/test_config.yaml")
-    config.set(BulletDSLConfig.CONNECTOR_CLASS_NAME, "com.yahoo.bullet.spark.MockConnector")
-
-    val dslReceiver = new DSLReceiver(new BulletDSLConfig(config))
-
-    val outputCollector = ListBuffer.empty[Array[AnyRef]]
-
-    val dataStream = ssc.receiverStream(dslReceiver)
-    dataStream.foreachRDD(rdd => outputCollector += rdd.collect())
-
-    ssc.start()
-
-    eventually {
-      wait1second()
-      outputCollector.flatten.toList should equal(List.empty)
-      outputCollector.flatten.toList should not equal List.empty
+      outputCollector.flatten should equal(List("hello", "world", "!"))
     }
   }
 }
