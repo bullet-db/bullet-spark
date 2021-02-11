@@ -21,7 +21,12 @@ class DSLDataProducer extends DataProducer {
     val config = new BulletDSLConfig(bulletSparkConfig)
     val receiver = new DSLReceiver(config)
     val converter = BulletRecordConverter.from(config)
-    val deserializer = BulletDeserializer.from(config)
-    ssc.receiverStream(receiver).map(deserializer.deserialize).map(converter.convert)
+    val dslDeserializerEnable = config.get(BulletSparkConfig.DSL_DESERIALIZER_ENABLE).asInstanceOf[Boolean]
+    if (dslDeserializerEnable) {
+      val deserializer = BulletDeserializer.from(config)
+      ssc.receiverStream(receiver).map(deserializer.deserialize).map(converter.convert)
+    } else {
+      ssc.receiverStream(receiver).map(converter.convert)
+    }
   }
 }
