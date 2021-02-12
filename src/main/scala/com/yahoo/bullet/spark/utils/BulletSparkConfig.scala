@@ -17,12 +17,14 @@ object BulletSparkConfig {
   val QUERY_BLOCK_SIZE = "bullet.spark.receiver.query.block.size"
   val QUERY_COALESCE_PARTITIONS = "bullet.spark.receiver.query.coalesce.partitions"
   val BATCH_DURATION_MS = "bullet.spark.batch.duration.ms"
+  val DSL_DATA_PRODUCER_ENABLE = "bullet.spark.dsl.data.producer.enable"
+  val DSL_DESERIALIZER_ENABLE = "bullet.spark.dsl.deserializer.enable"
   val DATA_PRODUCER_PARALLELISM = "bullet.spark.data.producer.parallelism"
   val DATA_PRODUCER_CLASS_NAME = "bullet.spark.data.producer.class.name"
   val CHECKPOINT_DIR = "bullet.spark.checkpoint.dir"
   val RECOVER_FROM_CHECKPOINT_ENABLE = "bullet.spark.recover.from.checkpoint.enable"
   val APP_NAME = "bullet.spark.app.name"
-  val LOOP_PUBUSB_OVERRIDES = "bullet.spark.loop.pubsub.overrides"
+  val LOOP_PUBSUB_OVERRIDES = "bullet.spark.loop.pubsub.overrides"
   val METRICS_ENABLED = "bullet.spark.metrics.enabled"
   val FILTER_PARTITION_PARALLEL_MODE_ENABLED = "bullet.spark.filter.partition.parallel.mode.enabled"
   val FILTER_PARTITION_MODE_PARALLELISM = "bullet.spark.filter.partition.parallel.mode.parallelism"
@@ -51,11 +53,13 @@ object BulletSparkConfig {
   private val DEFAULT_QUERY_BLOCK_SIZE = 1
   private val DEFAULT_QUERY_COALESCE_PARTITIONS = 10
   private val DEFAULT_BATCH_DURATION_MS = 1000
+  private val DEFAULT_DSL_DATA_PRODUCER_ENABLE = false
+  private val DEFAULT_DSL_DESERIALIZER_ENABLE = false
   private val DEFAULT_DATA_PRODUCER_PARALLELISM = 1
   private val DEFAULT_CHECKPOINT_DIR = "/tmp/spark-checkpoint"
   private val DEFAULT_RECOVER_FROM_CHECKPOINT_ENABLE = false
   private val DEFAULT_APP_NAME = "BulletSparkStreamingJob"
-  private val DEFAULT_LOOP_PUBUSB_OVERRIDES = new HashMap[String, AnyRef]()
+  private val DEFAULT_LOOP_PUBSUB_OVERRIDES = new HashMap[String, AnyRef]()
   private val DEFAULT_METRICS_ENABLED = false
   private val DEFAULT_FILTER_PARTITION_PARALLEL_MODE_ENABLED = false
   private val DEFAULT_FILTER_PARTITION_MODE_PARALLELISM = 4
@@ -65,55 +69,61 @@ object BulletSparkConfig {
 
   private val VALIDATOR = BulletConfig.getValidator
   VALIDATOR.define(QUERY_BLOCK_SIZE)
-    .defaultTo(DEFAULT_QUERY_BLOCK_SIZE)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_QUERY_BLOCK_SIZE)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
   VALIDATOR.define(QUERY_COALESCE_PARTITIONS)
-    .defaultTo(DEFAULT_QUERY_COALESCE_PARTITIONS)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_QUERY_COALESCE_PARTITIONS)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
   VALIDATOR.define(BATCH_DURATION_MS)
-    .defaultTo(DEFAULT_BATCH_DURATION_MS)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_BATCH_DURATION_MS)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
+  VALIDATOR.define(DSL_DATA_PRODUCER_ENABLE)
+           .defaultTo(DEFAULT_DSL_DATA_PRODUCER_ENABLE)
+           .checkIf(asJavaPredicate(Validator.isBoolean))
+  VALIDATOR.define(DSL_DESERIALIZER_ENABLE)
+           .defaultTo(DEFAULT_DSL_DESERIALIZER_ENABLE)
+           .checkIf(asJavaPredicate(Validator.isBoolean))
   VALIDATOR.define(DATA_PRODUCER_PARALLELISM)
-    .defaultTo(DEFAULT_DATA_PRODUCER_PARALLELISM)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_DATA_PRODUCER_PARALLELISM)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
   VALIDATOR.define(CHECKPOINT_DIR)
-    .defaultTo(DEFAULT_CHECKPOINT_DIR)
-    .checkIf(asJavaPredicate(Validator.isString))
+           .defaultTo(DEFAULT_CHECKPOINT_DIR)
+           .checkIf(asJavaPredicate(Validator.isString))
   VALIDATOR.define(RECOVER_FROM_CHECKPOINT_ENABLE)
-    .defaultTo(DEFAULT_RECOVER_FROM_CHECKPOINT_ENABLE)
-    .checkIf(asJavaPredicate(Validator.isBoolean))
+           .defaultTo(DEFAULT_RECOVER_FROM_CHECKPOINT_ENABLE)
+           .checkIf(asJavaPredicate(Validator.isBoolean))
   VALIDATOR.define(APP_NAME)
-    .defaultTo(DEFAULT_APP_NAME)
-    .checkIf(asJavaPredicate(Validator.isString))
-  VALIDATOR.define(LOOP_PUBUSB_OVERRIDES)
-    .checkIf(asJavaPredicate(Validator.isMap))
-    .defaultTo(DEFAULT_LOOP_PUBUSB_OVERRIDES)
+           .defaultTo(DEFAULT_APP_NAME)
+           .checkIf(asJavaPredicate(Validator.isString))
+  VALIDATOR.define(LOOP_PUBSUB_OVERRIDES)
+           .checkIf(asJavaPredicate(Validator.isMap))
+           .defaultTo(DEFAULT_LOOP_PUBSUB_OVERRIDES)
   VALIDATOR.define(METRICS_ENABLED)
-    .defaultTo(DEFAULT_METRICS_ENABLED)
-    .checkIf(asJavaPredicate(Validator.isBoolean))
+           .defaultTo(DEFAULT_METRICS_ENABLED)
+           .checkIf(asJavaPredicate(Validator.isBoolean))
   VALIDATOR.define(FILTER_PARTITION_PARALLEL_MODE_ENABLED)
-    .defaultTo(DEFAULT_FILTER_PARTITION_PARALLEL_MODE_ENABLED)
-    .checkIf(asJavaPredicate(Validator.isBoolean))
+           .defaultTo(DEFAULT_FILTER_PARTITION_PARALLEL_MODE_ENABLED)
+           .checkIf(asJavaPredicate(Validator.isBoolean))
   VALIDATOR.define(FILTER_PARTITION_MODE_PARALLELISM)
-    .defaultTo(DEFAULT_FILTER_PARTITION_MODE_PARALLELISM)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_FILTER_PARTITION_MODE_PARALLELISM)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
   VALIDATOR.define(FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD)
-    .defaultTo(DEFAULT_FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_FILTER_PARTITION_PARALLEL_MODE_MIN_QUERY_THRESHOLD)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
   VALIDATOR.define(QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER)
-    .defaultTo(DEFAULT_QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_QUERY_UNION_CHECKPOINT_DURATION_MULTIPLIER)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
   VALIDATOR.define(JOIN_CHECKPOINT_DURATION_MULTIPLIER)
-    .defaultTo(DEFAULT_JOIN_CHECKPOINT_DURATION_MULTIPLIER)
-    .checkIf(asJavaPredicate(Validator.isPositiveInt))
-    .castTo(asJavaFunction(Validator.asInt))
+           .defaultTo(DEFAULT_JOIN_CHECKPOINT_DURATION_MULTIPLIER)
+           .checkIf(asJavaPredicate(Validator.isPositiveInt))
+           .castTo(asJavaFunction(Validator.asInt))
 
   // For testing.
   private[spark] def clearInstance(): Unit = synchronized {

@@ -4,6 +4,14 @@
 # This is the name of the concrete implementation of Data Producer to use.
 bullet.spark.data.producer.class.name: "full.package.path.to.your.producer.class"
 
+# If true, enables the Bullet DSL data producer which can be configured to read from a custom data source. If enabled,
+# the DSL data producer is used instead of the producer provided above. (See https://github.com/bullet-db/bullet-dsl)
+bullet.spark.dsl.data.producer.enable: false
+
+# If true, enables the deserializer between the Bullet DSL connector and converter components. Otherwise, this step is
+# skipped.
+bullet.spark.dsl.deserializer.enable: false
+
 # This is the batch interval of your Spark Streaming job. Find out more at
 # https://spark.apache.org/docs/latest/streaming-programming-guide.html#setting-the-right-batch-interval.
 bullet.spark.batch.duration.ms: 1000

@@ -34,7 +34,7 @@ object ResultPublisher extends BulletSparkLogger {
 
               // Setup Pubsub for feedback loop.
               val overrides =
-                config.get(BulletSparkConfig.LOOP_PUBUSB_OVERRIDES).asInstanceOf[HashMap[String, AnyRef]].asScala
+                config.get(BulletSparkConfig.LOOP_PUBSUB_OVERRIDES).asInstanceOf[HashMap[String, AnyRef]].asScala
               logger.info("Loaded PubSub overrides: {}", overrides)
               val modified = new BulletConfig()
               overrides.foreach(item => modified.set(item._1, item._2))
