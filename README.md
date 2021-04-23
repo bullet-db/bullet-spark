@@ -1,6 +1,6 @@
 # Bullet Spark
 
-[![Build Status](https://travis-ci.com/bullet-db/bullet-spark.svg?branch=master)](https://travis-ci.com/bullet-db/bullet-spark) [![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-spark/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-spark?branch=master) [![Download](https://api.bintray.com/packages/yahoo/maven/bullet-spark/images/download.svg) ](https://bintray.com/yahoo/maven/bullet-spark/_latestVersion)
+[![Build Status](https://travis-ci.com/bullet-db/bullet-spark.svg?branch=master)](https://travis-ci.com/bullet-db/bullet-spark) [![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-spark/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-spark?branch=master) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-spark/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-spark/)
 
 ## Introduction
 
