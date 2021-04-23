@@ -13,7 +13,7 @@ jar:
 	    mvn clean package
 
 release:
-	    mvn -B release:prepare release:clean && git checkout `git describe --abbrev=0` -b `git describe --abbrev=0` && git push -u origin HEAD && git checkout master && git pull
+	    mvn -B release:prepare release:clean
 
 coverage:
 	    mvn clean scoverage:report
