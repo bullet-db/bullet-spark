@@ -1,6 +1,8 @@
 # Bullet Spark
 
-[![Build Status](https://travis-ci.com/bullet-db/bullet-spark.svg?branch=master)](https://travis-ci.com/bullet-db/bullet-spark) [![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-spark/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-spark?branch=master) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-spark/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-spark/)
+[![Build Status](https://cd.screwdriver.cd/pipelines/7226/badge)](https://cd.screwdriver.cd/pipelines/7226)
+[![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-spark/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-spark?branch=master) 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-spark/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-spark/)
 
 ## Introduction
 
