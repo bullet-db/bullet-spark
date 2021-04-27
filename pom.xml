@@ -258,6 +258,7 @@
                     <coberturaReports>
                         <param>${project.build.directory}/cobertura.xml</param>
                     </coberturaReports>
+                    <repoToken>${env.COVERALLS_TOKEN}</repoToken>
                 </configuration>
             </plugin>
 
