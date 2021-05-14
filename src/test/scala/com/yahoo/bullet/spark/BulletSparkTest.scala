@@ -1,5 +1,5 @@
 /*
- *  Copyright 2018, Oath Inc.
+ *  Copyright 2018, Yahoo Inc.
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
@@ -10,7 +10,7 @@ import java.io.File
 import com.yahoo.bullet.pubsub.Metadata
 import com.yahoo.bullet.query.Query
 import com.yahoo.bullet.querying.RunningQuery
-import com.yahoo.bullet.spark.utils.BulletSparkConfig
+import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkKryoRegistrator}
 import org.apache.commons.io.FileUtils
 import org.apache.spark.streaming.{Clock, Seconds, StreamingContext}
 import org.apache.spark.{FixedClock, SparkConf, SparkContext}
@@ -54,6 +54,7 @@ trait BulletSparkTest extends FlatSpec with Matchers with BeforeAndAfter with Ev
       .setAppName("BulletSparkTest")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.closure.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .set("spark.kryo.registrator", classOf[BulletSparkKryoRegistrator].getName)
       .set("spark.streaming.clock", "org.apache.spark.FixedClock")
       .set("spark.default.parallelism", "1")
       .set("spark.streaming.blockInterval", "1ms")

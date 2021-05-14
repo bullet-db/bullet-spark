@@ -1,5 +1,5 @@
 /*
- *  Copyright 2018, Oath Inc.
+ *  Copyright 2018, Yahoo Inc.
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
@@ -16,7 +16,7 @@ import com.yahoo.bullet.querying.{Querier, RunningQuery}
 import com.yahoo.bullet.spark.data.{
   BulletData, BulletErrorData, BulletSignalData, FilterResultData, QuerierData, RunningQueryData
 }
-import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkLogger}
+import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkKryoRegistrator, BulletSparkLogger}
 import org.apache.spark.{BulletSparkMetricsSource, SparkConf}
 import org.apache.spark.streaming.{Durations, StreamingContext}
 
@@ -62,7 +62,8 @@ class BulletSparkStreamingBaseJob extends BulletSparkLogger {
   private def initStreamingContext(config: BulletSparkConfig): StreamingContext = {
     // Construct the Spark Streaming Context.
     val appName = config.get(BulletSparkConfig.APP_NAME).asInstanceOf[String]
-    val conf = new SparkConf().registerKryoClasses(BulletSparkStreamingBaseJob.CLASSES).setAppName(appName)
+    val conf = new SparkConf().set("spark.kryo.registrator", classOf[BulletSparkKryoRegistrator].getName)
+      .registerKryoClasses(BulletSparkStreamingBaseJob.CLASSES).setAppName(appName)
 
     // Set all Spark setting as is.
     val sparkConfig = config.getAllWithPrefix(Optional.empty(), BulletSparkConfig.SPARK_STREAMING_CONFIG_PREFIX, false)
