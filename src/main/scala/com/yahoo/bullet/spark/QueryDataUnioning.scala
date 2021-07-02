@@ -6,7 +6,7 @@
 package com.yahoo.bullet.spark
 
 import com.yahoo.bullet.pubsub.Metadata.Signal
-import com.yahoo.bullet.pubsub.PubSubMessage
+import com.yahoo.bullet.pubsub.{PubSubMessage, PubSubMessageSerDe}
 import com.yahoo.bullet.record.BulletRecord
 import com.yahoo.bullet.spark.data.{BulletData, BulletErrorData, BulletSignalData, RunningQueryData}
 import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkUtils}
@@ -40,8 +40,9 @@ object QueryDataUnioning {
                                        ): DStream[(String, BulletData)] = {
     // Create (id, BulletData) pairs out of the queries.
     val metrics = BulletSparkMetrics.getInstance(ssc, broadcastedConfig)
+    val messageSerDe = PubSubMessageSerDe.from(broadcastedConfig.value)
     val queryPairStream = queryStream.map(m => {
-      val output = (m.getId, BulletSparkUtils.createBulletData(m, broadcastedConfig))
+      val output = (m.getId, BulletSparkUtils.createBulletData(messageSerDe.fromMessage(m), broadcastedConfig))
       if (!output._2.isInstanceOf[BulletSignalData]) {
         BulletSparkMetrics.newQueryReceived(metrics)
       }
