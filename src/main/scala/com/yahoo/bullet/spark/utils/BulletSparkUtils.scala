@@ -33,7 +33,8 @@ object BulletSparkUtils {
       if (signal != null && signal == Metadata.Signal.KILL || signal == Metadata.Signal.COMPLETE) {
         new BulletSignalData(metadata, signal)
       } else {
-        val runningQuery = new RunningQuery(id, pubSubMessage.getContentAsQuery, metadata)
+        val query = pubSubMessage.getContentAsQuery
+        val runningQuery = new RunningQuery(id, query, metadata)
         new RunningQueryData(metadata, runningQuery)
       }
     } catch {
