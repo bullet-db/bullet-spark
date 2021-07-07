@@ -5,12 +5,10 @@
  */
 package com.yahoo.bullet.spark
 
-import com.yahoo.bullet.common.SerializerDeserializer
-
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import com.yahoo.bullet.pubsub.Metadata.Signal
-import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
+import com.yahoo.bullet.pubsub.{ByteArrayPubSubMessageSerDe, PubSubMessage}
 import com.yahoo.bullet.query.{Projection, Query, Window}
 import com.yahoo.bullet.query.QueryUtils.makeFieldFilterQuery
 import com.yahoo.bullet.query.aggregations.Raw
@@ -19,7 +17,7 @@ import com.yahoo.bullet.spark.utils.{BulletSparkConfig, BulletSparkUtils}
 import org.apache.spark.rdd.RDD
 
 class QueryDataUnioningTest extends BulletSparkTest {
-  private val metadata = new Metadata()
+  private val messageSerDe = new ByteArrayPubSubMessageSerDe(new BulletSparkConfig("src/test/resources/test_config.yaml"))
 
   behavior of "The query data unioning stage"
 
@@ -38,9 +36,10 @@ class QueryDataUnioningTest extends BulletSparkTest {
     ssc.start()
 
     val query = makeFieldFilterQuery("b235gf23b")
-    val pubSubMessage1 = new PubSubMessage("id1", SerializerDeserializer.toBytes(query), metadata)
+    val pubSubMessage1 = messageSerDe.toMessage("id1", query, null)
     // Json parsing error.
-    val pubSubMessage2 = new PubSubMessage("id2", "This is a json parsing error pubsub message.")
+    val pubSubMessage2 = messageSerDe.toMessage("id2", null, null)
+    pubSubMessage2.setContent("This is a query deserialization error.")
     inputQueries += sc.makeRDD(Seq(pubSubMessage1, pubSubMessage2))
     wait1second() // T = 1s
 
@@ -92,7 +91,7 @@ class QueryDataUnioningTest extends BulletSparkTest {
     ssc.start()
 
     val query = new Query(new Projection(), null, new Raw(1), null, new Window(), 1L)
-    val pubSubMessage1 = new PubSubMessage("id1", SerializerDeserializer.toBytes(query), metadata)
+    val pubSubMessage1 = messageSerDe.toMessage("id1", query, null)
     inputQueries += sc.makeRDD(Seq(pubSubMessage1))
     wait1second() // T = 1s
 

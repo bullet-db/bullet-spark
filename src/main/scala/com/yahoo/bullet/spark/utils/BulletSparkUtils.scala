@@ -9,10 +9,9 @@ package com.yahoo.bullet.spark.utils
 import scala.collection.JavaConverters._
 // scalastyle:on
 
-import com.yahoo.bullet.common.{BulletError, SerializerDeserializer}
+import com.yahoo.bullet.common.BulletError
 import com.yahoo.bullet.pubsub.Metadata.Signal
 import com.yahoo.bullet.pubsub.{Metadata, PubSubMessage}
-import com.yahoo.bullet.query.Query
 import com.yahoo.bullet.querying.{Querier, RateLimitError, RunningQuery}
 import com.yahoo.bullet.result.{Clip, Meta}
 import com.yahoo.bullet.spark.data.{BulletData, BulletErrorData, BulletSignalData, QuerierData, RunningQueryData}
@@ -27,7 +26,6 @@ object BulletSparkUtils {
    */
   def createBulletData(pubSubMessage: PubSubMessage, broadcastedConfig: Broadcast[BulletSparkConfig]): BulletData = {
     val id = pubSubMessage.getId
-    val content = pubSubMessage.getContent
     val metadata = pubSubMessage.getMetadata
     val config = broadcastedConfig.value
     try {
@@ -35,7 +33,7 @@ object BulletSparkUtils {
       if (signal != null && signal == Metadata.Signal.KILL || signal == Metadata.Signal.COMPLETE) {
         new BulletSignalData(metadata, signal)
       } else {
-        val query: Query = SerializerDeserializer.fromBytes(content)
+        val query = pubSubMessage.getContentAsQuery
         val runningQuery = new RunningQuery(id, query, metadata)
         new RunningQueryData(metadata, runningQuery)
       }
