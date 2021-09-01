@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.bullet</groupId>
     <artifactId>bullet-spark</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
     <name>bullet-spark</name>
 
@@ -33,7 +33,7 @@
         <url>https://github.com/bullet-db/bullet-spark</url>
         <connection>scm:git:ssh://git@github.com/bullet-db/bullet-spark.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/bullet-db/bullet-spark.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>bullet-spark-1.2.0</tag>
     </scm>
 
     <developers>
