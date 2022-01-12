@@ -77,10 +77,19 @@
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- This dependency brings in the old slf4j and log4j implementations but should not be in the uber jar since
+             it is marked provided. Compile and Test classpaths don't need them to run our tests. Spark Core 3.3.0
+             upgrades to Log4j 2. Upgrade once released and remove these exclusions -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.dep.version}</artifactId>
             <version>${spark.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -96,20 +105,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- COMPILE -->
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-java8-compat_${scala.dep.version}</artifactId>
             <version>0.9.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yahoo.bullet</groupId>
-            <artifactId>bullet-core</artifactId>
-            <version>${bullet.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <version>${avro.version}</version>
         </dependency>
         <!--  Technically the log4j binding brings this in but adding it explicitly to control versions and state the obvious -->
         <dependency>
@@ -121,6 +121,16 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yahoo.bullet</groupId>
+            <artifactId>bullet-core</artifactId>
+            <version>${bullet.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
         </dependency>
 
         <!-- Test -->
